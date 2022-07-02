@@ -388,7 +388,7 @@ class AndroidMapboxView(
 //            }
             navigationCamera.requestNavigationCameraToOverview()
             navigationCamera.requestNavigationCameraToIdle()
-            val onArrivalEvent = NavigationEvent(this@AndroidMapboxView, EventTypes.ON_ARRIVAL)
+            val onArrivalEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_ARRIVAL)
             mManager.handleEvent(onArrivalEvent)
         }
     }
@@ -546,8 +546,9 @@ class AndroidMapboxView(
                 routeLineView.renderRouteDrawData(it, value)
             }
             if (routes.isNotEmpty()) {
-                val findRouteSuccessEvent =
-                    NavigationEvent(this, EventTypes.ON_FIND_ROUTE_SUCCESS)
+//                val findRouteSuccessEvent =
+//                    NavigationEvent(this, EventTypes.ON_FIND_ROUTE_SUCCESS)
+                val findRouteSuccessEvent = MapChangeEvent(this, EventTypes.ON_FIND_ROUTE_SUCCESS)
                 mManager.handleEvent(findRouteSuccessEvent)
             }
         }
@@ -688,7 +689,8 @@ class AndroidMapboxView(
         // initialize maneuver api that feeds the data to the top banner maneuver view
 //        navigationCamera.requestNavigationCameraToIdle()
         isRouting = true
-        val navigationStartedEvent = NavigationEvent(this, EventTypes.ON_NAVIGATION_STARTED)
+//        val navigationStartedEvent = NavigationEvent(this, EventTypes.ON_NAVIGATION_STARTED)
+        val navigationStartedEvent = MapChangeEvent(this, EventTypes.ON_NAVIGATION_STARTED)
         mManager.handleEvent(navigationStartedEvent)
         mMapboxNavigation!!.startTripSession(true)
         navigationCamera.requestNavigationCameraToFollowing()

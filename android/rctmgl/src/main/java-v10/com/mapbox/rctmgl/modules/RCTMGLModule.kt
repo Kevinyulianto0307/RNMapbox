@@ -63,6 +63,12 @@ class RCTMGLModule(private val mReactContext: ReactApplicationContext) : ReactCo
         eventTypes["DidFinishRenderingMap"] = EventTypes.DID_FINISH_RENDERING_MAP
         eventTypes["DidFinishRenderingMapFully"] = EventTypes.DID_FINISH_RENDERING_MAP_FULLY
         eventTypes["DidFinishLoadingStyle"] = EventTypes.DID_FINISH_LOADING_STYLE
+        eventTypes["OnLocationMatcherChange"] = EventTypes.ON_LOCATION_MATCHER_CHANGE
+        eventTypes["OnRouteProgressChange"] = EventTypes.ON_ROUTE_PROGRESS_CHANGE
+        eventTypes["OnArrival"] = EventTypes.ON_ARRIVAL
+        eventTypes["OnRouteOff"] = EventTypes.ON_ROUTE_OFF
+        eventTypes["OnNavigationStarted"] = EventTypes.ON_NAVIGATION_STARTED
+        eventTypes["OnError"] = EventTypes.ON_ERROR
 
         // style source constants
         val styleSourceConsts: MutableMap<String, String> = HashMap()

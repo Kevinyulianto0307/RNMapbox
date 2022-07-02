@@ -219,6 +219,14 @@ declare namespace MapboxGL {
     getPointInView(coordinate: GeoJSON.Position): Promise<GeoJSON.Position>;
     getCoordinateFromView(point: GeoJSON.Position): Promise<GeoJSON.Position>;
     getVisibleBounds(): Promise<GeoJSON.Position[]>;
+    findRoute(
+      origin?: number[] | undefined,
+      destination?: number[] | undefined,
+    ): Promise<void>;
+    startRoute(shouldSimulate: boolean): Promise<void>;
+    stopRoute(shouldSimulate: boolean): Promise<void>;
+    resetRoute(): Promise<void>;
+    recenter(): Promise<void>;
     queryRenderedFeaturesAtPoint(
       coordinate: GeoJSON.Position,
       filter?: Expression,

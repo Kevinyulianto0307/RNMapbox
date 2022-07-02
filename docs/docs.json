@@ -2889,6 +2889,131 @@
         "returns": null,
         "description": "Show the attribution and telemetry action sheet.\nIf you implement a custom attribution button, you should add this action to the button.",
         "examples": []
+      },
+      {
+        "name": "findRoute",
+        "docblock": "find route\n\n@example\nconst findRoute = await this._map.findRoute(origin, destination);\n\n@param {number[] | undefined} origin\n@param {number[] | undefined} destination",
+        "modifiers": [
+          "async"
+        ],
+        "params": [
+          {
+            "name": "origin",
+            "description": null,
+            "type": {
+              "name": "union",
+              "elements": [
+                {
+                  "name": "Array",
+                  "elements": [
+                    {
+                      "name": "number"
+                    }
+                  ]
+                },
+                null
+              ]
+            },
+            "optional": false
+          },
+          {
+            "name": "destination",
+            "description": null,
+            "type": {
+              "name": "union",
+              "elements": [
+                {
+                  "name": "Array",
+                  "elements": [
+                    {
+                      "name": "number"
+                    }
+                  ]
+                },
+                null
+              ]
+            },
+            "optional": false
+          }
+        ],
+        "returns": null,
+        "description": "find route",
+        "examples": [
+          "\nconst findRoute = await this._map.findRoute(origin, destination);\n\n"
+        ]
+      },
+      {
+        "name": "startRoute",
+        "docblock": "start route\n@param {boolean} shouldSimulate\n@example\nawait this._map.startRoute(shouldSimulate);",
+        "modifiers": [
+          "async"
+        ],
+        "params": [
+          {
+            "name": "shouldSimulate",
+            "description": null,
+            "type": {
+              "name": "boolean"
+            },
+            "optional": false
+          }
+        ],
+        "returns": null,
+        "description": "start route",
+        "examples": [
+          "\nawait this._map.startRoute(shouldSimulate);"
+        ]
+      },
+      {
+        "name": "stopRoute",
+        "docblock": "stop route\n@param {boolean} shouldSimulate\n@example\nawait this._map.stopRoute(shouldSimulate);",
+        "modifiers": [
+          "async"
+        ],
+        "params": [
+          {
+            "name": "shouldSimulate",
+            "description": null,
+            "type": {
+              "name": "boolean"
+            },
+            "optional": false
+          }
+        ],
+        "returns": null,
+        "description": "stop route",
+        "examples": [
+          "\nawait this._map.stopRoute(shouldSimulate);"
+        ]
+      },
+      {
+        "name": "recenter",
+        "docblock": "recenter on current position camera\n@example\nawait this._map.recenter();",
+        "modifiers": [
+          "async"
+        ],
+        "params": [],
+        "returns": null,
+        "description": "recenter on current position camera",
+        "examples": [
+          "\nawait this._map.recenter();"
+        ]
+      },
+      {
+        "name": "resetRoute",
+        "docblock": "reset route line view\n@returns {void}",
+        "modifiers": [
+          "async"
+        ],
+        "params": [],
+        "returns": {
+          "description": null,
+          "type": {
+            "name": "void"
+          }
+        },
+        "description": "reset route line view",
+        "examples": []
       }
     ],
     "props": [
