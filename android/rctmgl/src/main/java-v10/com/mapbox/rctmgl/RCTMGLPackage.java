@@ -67,7 +67,7 @@ public class RCTMGLPackage implements ReactPackage {
 
         // components
         managers.add(new RCTMGLCameraManager(reactApplicationContext));
-        managers.add(new RCTMGLAndroidTextureMapViewManager(reactApplicationContext));
+//        managers.add(new RCTMGLAndroidTextureMapViewManager(reactApplicationContext));
 //        managers.add(new RCTMGLMapViewManager(reactApplicationContext));
         managers.add(new AndroidMapboxViewManager(reactApplicationContext));
         managers.add(new RCTMGLMarkerViewManager(reactApplicationContext));

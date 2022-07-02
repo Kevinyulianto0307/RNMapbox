@@ -1,14 +1,11 @@
 package com.mapbox.rctmgl.components.mapview
 
-import android.content.pm.PackageManager
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.mapbox.geojson.Point
-import com.mapbox.maps.ResourceOptionsManager
-import com.mapbox.maps.TileStoreUsageMode
 import com.mapbox.rctmgl.events.constants.EventKeys
 import com.mapbox.rctmgl.utils.extensions.toCoordinate
 import okhttp3.internal.toImmutableMap
@@ -40,8 +37,6 @@ class AndroidMapboxViewManager(context: ReactApplicationContext?) :
     }
 
     override fun createViewInstance(themedReactContext: ThemedReactContext): AndroidMapboxView {
-//        val options = MapboxMapOptions()
-//        options.textureMode(true)
         return AndroidMapboxView(themedReactContext, this)
     }
 
