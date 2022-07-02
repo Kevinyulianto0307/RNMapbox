@@ -1,4 +1,7 @@
-def defaultMapboxMapsImpl = "maplibre"
+apply plugin: 'com.android.library'
+apply plugin: "kotlin-android"
+
+def defaultMapboxMapsImpl = "mapbox"
 
 def safeExtGet(prop, fallback) {
     rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
@@ -9,64 +12,27 @@ if (rootProject.ext.has('expoRNMapboxMapsImpl')) {
     rootProject.ext.set('RNMapboxMapsImpl', rootProject.ext.get('expoRNMapboxMapsImpl'))
 }
 
-buildscript {
-  repositories {
-    google()
-    mavenCentral()
-  }
-
-  dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : '1.6.21'}"
-  }
-}
-
-apply plugin: 'com.android.library'
-
-if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "mapbox") {
-  apply plugin: 'kotlin-android'
-}
 
 android {
-    if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "maplibre") {
-        sourceSets {
-            main {
-                java.srcDirs = ['src/main/java-mapboxgl/common','src/main/java-mapboxgl/maplibre']
-            }
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java-v10']
         }
-    }
-    else if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "mapbox-gl") {
-        sourceSets {
-            main {
-                java.srcDirs = ['src/main/java-mapboxgl/common','src/main/java-mapboxgl/mapbox']
-            }
-        }
-    }
-    else if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "mapbox") {
-        sourceSets {
-            main {
-                java.srcDirs = ['src/main/java-v10']
-            }
-        }
-
-        packagingOptions {
-            pickFirst 'lib/x86/libc++_shared.so'
-            pickFirst 'lib/x86_64/libc++_shared.so'
-            pickFirst 'lib/arm64-v8a/libc++_shared.so'
-            pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-        }
-    }
-    else {
-        msg = "RNMapboxMapsImpl should be one of: mapbox, mapbox-gl, maplibre got: ${safeExtGet("mapboxV10", defaultMapboxMapsImpl)}"
-        logger.error(msg)
-        throw new GradleException(msg)
     }
 
-    compileSdkVersion safeExtGet("compileSdkVersion", 28)
-    buildToolsVersion safeExtGet("buildToolsVersion", '28.0.3')
+    packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+    }
+
+    compileSdkVersion safeExtGet("compileSdkVersion", 31)
+    buildToolsVersion safeExtGet("buildToolsVersion", '29.0.3')
 
     defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', 16)
-        targetSdkVersion safeExtGet('targetSdkVersion', 26)
+        minSdkVersion safeExtGet('minSdkVersion', 23)
+        targetSdkVersion safeExtGet('targetSdkVersion', 30)
         versionCode 1
         versionName "1.0"
     }
@@ -77,6 +43,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['debug', 'release']
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -132,6 +102,7 @@ dependencies {
         else if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "mapbox") {
             implementation 'com.mapbox.maps:android:10.6.0'
             implementation 'com.mapbox.mapboxsdk:mapbox-sdk-turf:5.8.0'
+            implementation "com.mapbox.navigation:android:2.5.1"
         }
     }
 

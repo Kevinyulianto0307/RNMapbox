@@ -33,6 +33,12 @@ public class EventKeys {
     // location events
     public static final String USER_LOCATION_UPDATE = ns("user.location.update");
 
+    public static final String ON_FIND_ROUTE_SUCCESS = ns("map.findroutesuccess");
+    public static final String ON_NAVIGATION_STARTED = ns("map.navigationstarted");
+    public static final String ON_ROUTE_OFF = ns("map.routeoff");
+    public static final String ON_ARRIVAL = ns("map.arrival");
+    public static final String ON_ERROR = ns("map.error");
+
     private static String ns(String name) {
         return String.format("%s.%s", NAMESPACE, name);
     }

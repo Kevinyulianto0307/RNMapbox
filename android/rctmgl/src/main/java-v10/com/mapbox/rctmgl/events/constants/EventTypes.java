@@ -41,6 +41,22 @@ public class EventTypes {
     public static final String SHAPE_SOURCE_LAYER_CLICK = "shapesourcelayerpress";
     public static final String VECTOR_SOURCE_LAYER_CLICK = "vectorsourcelayerpress";
     public static final String RASTER_SOURCE_LAYER_CLICK = "rastersourcelayerpress";
+    
+    public static final String ON_ARRIVAL = "arrival";
+
+    public static final String ON_ROUTE_OFF = "routeoff";
+
+    public static final String ON_ROUTE_PROGRESS_CHANGE = "routeprogresschange";
+
+    public static final String ON_FIND_ROUTE_SUCCESS = "findroutesuccess";
+
+    public static final String ON_NAVIGATION_STARTED = "navigationstarted";
+
+    // location event types
+    public static final String ON_LOCATION_MATCHER_CHANGE = "locationmatcherchange";
+
+    // error event types
+    public static final String ON_ERROR = "onerror";
 
     // image missing event type
     public static final String IMAGES_MISSING = "imagesmissing";
