@@ -327,6 +327,7 @@ class MapView extends NativeBridgeComponent(React.Component) {
     this._onLongPress = this._onLongPress.bind(this);
     this._onChange = this._onChange.bind(this);
     this._onLayout = this._onLayout.bind(this);
+    this._onError = this._onError.bind(this);
 
     // debounced map change methods
     this._onDebouncedRegionWillChange = debounce(
@@ -611,6 +612,65 @@ class MapView extends NativeBridgeComponent(React.Component) {
     return this._runNativeCommand('showAttribution', this._nativeRef);
   }
 
+  /**
+   * find route
+   *
+   * @example
+   * const findRoute = await this._map.findRoute(origin, destination);
+   *
+   * @param {number[] | undefined} origin
+   * @param {number[] | undefined} destination
+   */
+  async findRoute(origin, destination) {
+    await this._runNativeCommand('findRoute', this._nativeRef, [
+      origin,
+      destination,
+    ]);
+  }
+
+  /**
+   * start route
+   * @param {boolean} shouldSimulate
+   * @example
+   * await this._map.startRoute(shouldSimulate);
+   *
+   */
+  async startRoute(shouldSimulate) {
+    await this._runNativeCommand('startRoute', this._nativeRef, [
+      shouldSimulate,
+    ]);
+  }
+
+  /**
+   * stop route
+   * @param {boolean} shouldSimulate
+   * @example
+   * await this._map.stopRoute(shouldSimulate);
+   *
+   */
+  async stopRoute(shouldSimulate) {
+    await this._runNativeCommand('stopRoute', this._nativeRef, [
+      shouldSimulate,
+    ]);
+  }
+
+  /**
+   * recenter on current position camera
+   * @example
+   * await this._map.recenter();
+   */
+  async recenter() {
+    await this._runNativeCommand('recenter', this._nativeRef);
+  }
+
+  /**
+   * reset route line view
+   * @returns {void}
+   */
+  async resetRoute() {
+    await this._runNativeCommand('resetRoute', this._nativeRef);
+  }
+
   _createStopConfig(config = {}) {
     const stopConfig = {
       mode: isNumber(config.mode) ? config.mode : MapboxGL.CameraModes.Ease,
@@ -667,6 +727,12 @@ class MapView extends NativeBridgeComponent(React.Component) {
       this.props.onRegionDidChange(payload);
     }
     this.setState({ region: payload });
+  }
+
+  _onError(payload) {
+    if (isFunction(this.props.onError)) {
+      this.props.onError(payload);
+    }
   }
 
   _onChange(e) {
@@ -731,6 +797,21 @@ class MapView extends NativeBridgeComponent(React.Component) {
         break;
       case MapboxGL.EventTypes.DidFinishLoadingStyle:
         propName = 'onDidFinishLoadingStyle';
+        break;
+      case MapboxGL.EventTypes.OnLocationMatcherChange:
+        propName = 'onLocationMatcherChange';
+        break;
+      case MapboxGL.EventTypes.OnRouteProgressChange:
+        propName = 'onRouteProgressChange';
+        break;
+      case MapboxGL.EventTypes.OnArrival:
+        propName = 'onArrival';
+        break;
+      case MapboxGL.EventTypes.OnRouteOff:
+        propName = 'onRouteOff';
+        break;
+      case MapboxGL.EventTypes.OnNavigationStarted:
+        propName = 'onNavigationStarted';
         break;
       default:
         console.warn('Unhandled event callback type', type);
@@ -827,6 +908,7 @@ class MapView extends NativeBridgeComponent(React.Component) {
     const callbacks = {
       ref: (nativeRef) => this._setNativeRef(nativeRef),
       onPress: this._onPress,
+      onError: this._onError,
       onLongPress: this._onLongPress,
       onMapChange: this._onChange,
       onAndroidCallback: isAndroid() ? this._onAndroidCallback : undefined,

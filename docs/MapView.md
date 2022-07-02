@@ -223,4 +223,79 @@ Show the attribution and telemetry action sheet.<br/>If you implement a custom a
 
 
 
+#### findRoute(origin, destination)
+
+find route
+
+##### arguments
+| Name | Type | Required | Description  |
+| ---- | :--: | :------: | :----------: |
+| `origin` | `union` | `Yes` | null |
+| `destination` | `union` | `Yes` | null |
+
+
+
+```javascript
+const findRoute = await this._map.findRoute(origin, destination);
+```
+
+
+#### startRoute(shouldSimulate)
+
+start route
+
+##### arguments
+| Name | Type | Required | Description  |
+| ---- | :--: | :------: | :----------: |
+| `shouldSimulate` | `boolean` | `Yes` | null |
+
+
+
+```javascript
+await this._map.startRoute(shouldSimulate);
+```
+
+
+#### stopRoute(shouldSimulate)
+
+stop route
+
+##### arguments
+| Name | Type | Required | Description  |
+| ---- | :--: | :------: | :----------: |
+| `shouldSimulate` | `boolean` | `Yes` | null |
+
+
+
+```javascript
+await this._map.stopRoute(shouldSimulate);
+```
+
+
+#### recenter()
+
+recenter on current position camera
+
+##### arguments
+| Name | Type | Required | Description  |
+| ---- | :--: | :------: | :----------: |
+
+
+
+
+```javascript
+await this._map.recenter();
+```
+
+
+#### resetRoute()
+
+reset route line view
+
+##### arguments
+| Name | Type | Required | Description  |
+| ---- | :--: | :------: | :----------: |
+
+
+
 
