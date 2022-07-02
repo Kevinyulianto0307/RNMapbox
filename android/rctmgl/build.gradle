@@ -78,8 +78,6 @@ dependencies {
     implementation "com.facebook.react:react-native:+"
 
     // Mapbox SDK
-    implementation "com.mapbox.navigation:android:2.5.1"
-
     customizableDependencies('RNMapboxMapsLibs') {
         if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "maplibre") {
             implementation ("org.maplibre.gl:android-sdk:9.5.2")
@@ -104,6 +102,7 @@ dependencies {
         else if (safeExtGet("RNMapboxMapsImpl", defaultMapboxMapsImpl) == "mapbox") {
             implementation 'com.mapbox.maps:android:10.5.0'
             implementation 'com.mapbox.mapboxsdk:mapbox-sdk-turf:6.5.0'
+            implementation "com.mapbox.navigation:android:2.5.1"
         }
     }
 
