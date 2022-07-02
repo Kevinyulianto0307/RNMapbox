@@ -29,7 +29,7 @@ if (MapboxGL == null) {
   );
 }
 
-export const NATIVE_MODULE_NAME = 'RCTMGLMapView';
+export const NATIVE_MODULE_NAME = 'AndroidMapboxViewManager'; //'RCTMGLMapView';
 
 // export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';
 export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'AndroidMapboxViewManager';
@@ -941,11 +941,8 @@ class MapView extends NativeBridgeComponent(React.Component) {
   }
 }
 
-const RCTMGLMapView = requireNativeComponent(NATIVE_MODULE_NAME, MapView, {
-  nativeOnly: { onMapChange: true, onAndroidCallback: true },
-});
-
 let RCTMGLAndroidTextureMapView;
+let RCTMGLMapView;
 if (isAndroid()) {
   RCTMGLAndroidTextureMapView = requireNativeComponent(
     ANDROID_TEXTURE_NATIVE_MODULE_NAME,
@@ -954,6 +951,10 @@ if (isAndroid()) {
       nativeOnly: { onMapChange: true, onAndroidCallback: true },
     },
   );
+} else {
+  RCTMGLMapView = requireNativeComponent(NATIVE_MODULE_NAME, MapView, {
+    nativeOnly: { onMapChange: true, onAndroidCallback: true },
+  });
 }
 
 export default MapView;
