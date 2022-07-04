@@ -24,7 +24,7 @@ rnMapboxMapsDefaultMapboxVersion = '~> 10.6.0'
 rnMapboxMapsDefaultMapboxGLVersion = '~> 5.9.0'
 rnMapboxMapsDefaultMapLibreVersion = 'exactVersion 5.12.1'
 
-rnMapboxMapsDefaultImpl = 'maplibre'
+rnMapboxMapsDefaultImpl = 'mapbox'
 
 # DEPRECATIONS
 
@@ -235,6 +235,8 @@ Pod::Spec.new do |s|
     when 'mapbox'
       s.dependency 'MapboxMaps', MapboxImplVersion
       s.dependency 'Turf'
+      s.dependency 'MapboxCoreNavigation', '2.5'
+      s.dependency 'MapboxNavigation', '2.5'
       s.swift_version = '5.0'
     when 'mapbox-gl'
       s.dependency 'Mapbox-iOS-SDK', MapboxImplVersion
