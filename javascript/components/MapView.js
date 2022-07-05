@@ -29,10 +29,10 @@ if (MapboxGL == null) {
   );
 }
 
-export const NATIVE_MODULE_NAME = 'AndroidMapboxViewManager'; //'RCTMGLMapView';
+export const NATIVE_MODULE_NAME = 'RCTMGLMapView'; //'RCTMGLMapView';
 
 // export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';
-export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'AndroidMapboxViewManager';
+export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';
 
 const styles = StyleSheet.create({
   matchParent: { flex: 1 },
