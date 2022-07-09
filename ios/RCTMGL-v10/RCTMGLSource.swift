@@ -1,13 +1,13 @@
 @_spi(Experimental) import MapboxMaps
 
 @objc
-class RCTMGLSource : UIView, RCTMGLMapComponent {
+class RCTMGLSource : UIView, RCTMGLMapComponent2 {
   
   var source : Source? = nil
 
   var ownsSource : Bool = false
 
-  var map : RCTMGLMapView? = nil
+  var map : RCTMGLNavigationMapView? = nil
   
   static let hitboxDefault = 44.0
 
@@ -38,7 +38,7 @@ class RCTMGLSource : UIView, RCTMGLMapComponent {
   @objc override func insertReactSubview(_ subview: UIView!, at atIndex: Int) {
     if let layer : RCTMGLSourceConsumer = subview as? RCTMGLSourceConsumer {
       if let map = map {
-        layer.addToMap(map, style: map.mapboxMap.style)
+        layer.addToMap(map, style: map.mapView.mapboxMap.style)
       }
       layers.append(layer)
     }
@@ -50,7 +50,7 @@ class RCTMGLSource : UIView, RCTMGLMapComponent {
     return true
   }
   
-  func addToMap(_ map: RCTMGLMapView, style: Style) {
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
     self.map = map
     
     map.onMapStyleLoaded { mapboxMap in
@@ -66,20 +66,20 @@ class RCTMGLSource : UIView, RCTMGLMapComponent {
       }
            
       for layer in self.layers {
-        layer.addToMap(map, style: map.mapboxMap.style)
+        layer.addToMap(map, style: map.mapView.mapboxMap.style)
       }
     }
   }
 
-  func removeFromMap(_ map: RCTMGLMapView) {
+  func removeFromMap(_ map: RCTMGLNavigationMapView) {
     self.map = nil
     
     for layer in self.layers {
-      layer.removeFromMap(map, style: map.mapboxMap.style)
+    layer.removeFromMap(map, style: map.mapView.mapboxMap.style)
     }
 
     if self.ownsSource {
-      let style = map.mapboxMap.style
+    let style = map.mapView.mapboxMap.style
       logged("StyleSource.removeFromMap", info: { "id: \(optional: self.id)"}) {
         try style.removeSource(withId: id)
       }

@@ -1,6 +1,6 @@
 import MapboxMaps
 
-class RCTMGLImages : UIView, RCTMGLMapComponent {
+class RCTMGLImages : UIView, RCTMGLMapComponent2 {
   
   var bridge : RCTBridge! = nil
   var remoteImages : [String:String] = [:]
@@ -20,7 +20,7 @@ class RCTMGLImages : UIView, RCTMGLMapComponent {
     return false
   }
   
-  func addToMap(_ map: RCTMGLMapView, style: Style) {
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
     map.images.append(self)
     map.setupEvents()
     
@@ -28,7 +28,7 @@ class RCTMGLImages : UIView, RCTMGLMapComponent {
     self.addRemoteImages(style: style, remoteImages: images)
   }
   
-  func removeFromMap(_ map: RCTMGLMapView) {
+  func removeFromMap(_ map: RCTMGLNavigationMapView) {
     // v10todo
   }
   

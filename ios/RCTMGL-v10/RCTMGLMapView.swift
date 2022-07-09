@@ -1,6 +1,10 @@
 @_spi(Restricted) import MapboxMaps
 import Turf
 import MapKit
+// MARK: - Navigation
+import MapboxCoreNavigation
+import MapboxNavigation
+import MapboxDirections
 
 @objc(RCTMGLMapView)
 open class RCTMGLMapView : MapView {
@@ -22,6 +26,8 @@ open class RCTMGLMapView : MapView {
   private var isPendingInitialLayout = true
   private var isGestureActive = false
   private var isAnimatingFromGesture = false
+    
+  private var navigationService: MapboxNavigationService?
 
   var layerWaiters : [String:[(String) -> Void]] = [:]
   
@@ -35,6 +41,10 @@ open class RCTMGLMapView : MapView {
   
   var mapView : MapView {
     get { return self }
+  }
+    
+  func setNavigationService(_ service: MapboxNavigationService) {
+      self.navigationService = service
   }
 
   func addToMap(_ subview: UIView) {
@@ -592,6 +602,63 @@ extension RCTMGLMapView {
       }
     }
   }
+}
+
+// MARK: - navigation
+extension RCTMGLMapView {
+    
+    @objc
+    func findRoute(_ origin:[NSNumber]?, destination:[NSNumber]?) -> Void {
+  
+//        if (origin == nil) {
+//            // throw error
+//          return
+//        } else if (destination == nil) {
+//            // throw error
+//          return
+//        }
+        
+        guard let origins = origin else {
+            return
+        }
+
+        guard let destinations = destination else {
+            return
+        }
+      
+        let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: origins[1] as! CLLocationDegrees, longitude: origins[0] as! CLLocationDegrees))
+
+        let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: destinations[1] as! CLLocationDegrees, longitude: destinations[0] as! CLLocationDegrees))
+        let routeOptions = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint], profileIdentifier: .automobile)
+        
+        // request routes
+        Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
+            switch result {
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    //throw error
+                case .success(let response):
+                    guard let strongSelf = self else {
+                            return
+                        }
+                    let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: routeOptions, customRoutingProvider: NavigationSettings.shared.directions, credentials: NavigationSettings.shared.directions.credentials, locationSource: nil, eventsManagerType: nil, simulating: .always, routerType: nil)
+
+                    self?.setNavigationService(navigationService)
+                    let navigationOptions = NavigationOptions(navigationService: navigationService)
+
+            
+                    let navigationViewController = NavigationViewController(for: response, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
+                    
+                
+//                strongSelf.present
+                // Pass the generated route response to the the NavigationViewController
+//                    navigationViewController.modalPresentationStyle = .fullScreen
+
+//                    navigationViewController.present(navigationViewController, animated: true)
+            }
+        }
+    }
+    
 }
 
 class PointAnnotationManager : AnnotationInteractionDelegate {

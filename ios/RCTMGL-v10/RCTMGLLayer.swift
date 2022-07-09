@@ -1,12 +1,12 @@
 @_spi(Experimental) import MapboxMaps
 
 protocol RCTMGLSourceConsumer {
-  func addToMap(_ map: RCTMGLMapView, style: Style)
-  func removeFromMap(_ map: RCTMGLMapView, style: Style)
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style)
+  func removeFromMap(_ map: RCTMGLNavigationMapView, style: Style)
 }
 
 @objc(RCTMGLLayer)
-class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
+class RCTMGLLayer : UIView, RCTMGLMapComponent2, RCTMGLSourceConsumer {
   var bridge : RCTBridge? = nil
 
   @objc var sourceLayerID : String? = nil {
@@ -68,7 +68,7 @@ class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
   
-  @objc weak var map: RCTMGLMapView? = nil
+  @objc weak var map: RCTMGLNavigationMapView? = nil
   
   var styleLayer: Layer? = nil
   
@@ -142,7 +142,7 @@ class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
   
-  func inserLayer(_ map: RCTMGLMapView) {
+  func inserLayer(_ map: RCTMGLNavigationMapView) {
     if self.style == nil {
       print("inserLayer but style is nil")
     }
@@ -153,7 +153,7 @@ class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
 
-  func updateLayer(_ map: RCTMGLMapView) {
+  func updateLayer(_ map: RCTMGLNavigationMapView) {
     if let style = style, let _ = styleLayer {
       loggedApply(style: style)
     }
@@ -173,7 +173,7 @@ class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     
   }
   
-  func addToMap(_ map: RCTMGLMapView, style: Style) {
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
     self.map = map
     self.style = style
     guard let id = id else {
@@ -207,7 +207,7 @@ class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     addedToMap()
   }
   
-  func removeFromMap(_ map: RCTMGLMapView, style: Style) {
+  func removeFromMap(_ map: RCTMGLNavigationMapView, style: Style) {
     removeFromMap(style)
   }
   
@@ -250,8 +250,8 @@ class RCTMGLLayer : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
 
-  func removeFromMap(_ map: RCTMGLMapView) {
-    removeFromMap(map.mapboxMap.style)
+  func removeFromMap(_ map: RCTMGLNavigationMapView) {
+    removeFromMap(map.mapView.mapboxMap.style)
   }
   
   private func removeFromMap(_ style: Style) {

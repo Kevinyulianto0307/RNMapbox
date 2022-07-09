@@ -29,7 +29,9 @@ if (MapboxGL == null) {
   );
 }
 
-export const NATIVE_MODULE_NAME = 'RCTMGLMapView'; //'RCTMGLMapView';
+export const NATIVE_MODULE_NAME = isAndroid()
+  ? 'RCTMGLMapView'
+  : 'RCTMGLNavigationMapView'; //'RCTMGLMapView';
 
 // export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';
 export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';

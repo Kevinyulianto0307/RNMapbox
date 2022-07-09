@@ -5,7 +5,15 @@ import Turf
 protocol RCTMGLMapComponent : class {
   func addToMap(_ map: RCTMGLMapView, style: Style)
   func removeFromMap(_ map: RCTMGLMapView)
-  
+
+  func waitForStyleLoad() -> Bool
+}
+
+protocol RCTMGLMapComponent2 : class {
+
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style)
+  func removeFromMap(_ map: RCTMGLNavigationMapView)
+
   func waitForStyleLoad() -> Bool
 }
 
@@ -18,7 +26,7 @@ struct CameraUpdateItem {
   var mode: CameraMode
   var duration: TimeInterval?
   
-  func execute(map: RCTMGLMapView, cameraAnimator: inout BasicCameraAnimator?) {
+  func execute(map: MapView, cameraAnimator: inout BasicCameraAnimator?) {
     switch mode {
       case .flight:
         var _camera = camera
@@ -38,7 +46,7 @@ struct CameraUpdateItem {
   
   /// Padding is not currently animatable on the camera's `fly(to:)` method, so we create a separate animator instead.
   /// If this changes, remove this and call `fly(to:)` with an unmodified `camera`.
-  func changePadding(map: RCTMGLMapView, cameraAnimator: inout BasicCameraAnimator?, curve: UIView.AnimationCurve) {
+  func changePadding(map: MapView, cameraAnimator: inout BasicCameraAnimator?, curve: UIView.AnimationCurve) {
     if let cameraAnimator = cameraAnimator {
       cameraAnimator.stopAnimation()
     }
@@ -63,12 +71,52 @@ class CameraUpdateQueue {
     queue.append(stop)
   }
   
-  func execute(map: RCTMGLMapView, cameraAnimator: inout BasicCameraAnimator?) {
+  func execute(map: RCTMGLNavigationMapView, cameraAnimator: inout BasicCameraAnimator?) {
     guard let stop = dequeue() else {
       return
     }
     
-    stop.execute(map: map, cameraAnimator: &cameraAnimator)
+    stop.execute(map: map.mapView, cameraAnimator: &cameraAnimator)
+  }
+}
+
+open class RCTMGLMapComponentBase2 : UIView, RCTMGLMapComponent2 {
+  private var _map: RCTMGLNavigationMapView! = nil
+  private var _mapCallbacks: [(RCTMGLNavigationMapView) -> Void] = []
+
+  var map : RCTMGLNavigationMapView? {
+    return _map;
+  }
+
+  func withMapView(_ callback: @escaping (_ mapView: MapView) -> Void) {
+     withRCTNavigationMapView { navigationMapView in
+         callback(navigationMapView.mapView)
+    }
+  }
+
+  func withRCTNavigationMapView(_ callback: @escaping (_ map: RCTMGLNavigationMapView) -> Void) {
+    if let map = _map {
+      callback(map)
+    } else {
+      _mapCallbacks.append(callback)
+    }
+  }
+
+  func waitForStyleLoad() -> Bool {
+    return false
+  }
+
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
+    _mapCallbacks.forEach { callback in
+        callback(map)
+    }
+    _mapCallbacks = []
+    _map = map
+  }
+
+  func removeFromMap(_ map: RCTMGLNavigationMapView) {
+    _mapCallbacks = []
+    _map = nil
   }
 }
 
@@ -97,7 +145,7 @@ open class RCTMGLMapComponentBase : UIView, RCTMGLMapComponent {
   func waitForStyleLoad() -> Bool {
     return false
   }
-  
+    
   func addToMap(_ map: RCTMGLMapView, style: Style) {
     _mapCallbacks.forEach { callback in
         callback(map)
@@ -105,14 +153,14 @@ open class RCTMGLMapComponentBase : UIView, RCTMGLMapComponent {
     _mapCallbacks = []
     _map = map
   }
-  
+
   func removeFromMap(_ map: RCTMGLMapView) {
     _mapCallbacks = []
     _map = nil
   }
 }
 
-class RCTMGLCamera : RCTMGLMapComponentBase, LocationConsumer {
+class RCTMGLCamera : RCTMGLMapComponentBase2, LocationConsumer {
   var cameraAnimator: BasicCameraAnimator?
   let cameraUpdateQueue = CameraUpdateQueue()
 
@@ -303,7 +351,7 @@ class RCTMGLCamera : RCTMGLMapComponentBase, LocationConsumer {
     var updateItem = toUpdateItem(stop: stop)
     updateItem.mode = .none
     updateItem.duration = 0
-    updateItem.execute(map: map, cameraAnimator: &cameraAnimator)
+      updateItem.execute(map: map.mapView, cameraAnimator: &cameraAnimator)
   }
   
   func initialLayout() {
@@ -311,7 +359,7 @@ class RCTMGLCamera : RCTMGLMapComponentBase, LocationConsumer {
     _updateCamera()
   }
   
-  override func addToMap(_ map: RCTMGLMapView, style: Style) {
+  override func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
     super.addToMap(map, style: style)
     map.reactCamera = self
   }

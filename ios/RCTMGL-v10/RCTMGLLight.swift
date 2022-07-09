@@ -1,7 +1,7 @@
 import MapboxMaps
 
 @objc(RCTMGLLight)
-class RCTMGLLight: UIView, RCTMGLMapComponent {
+class RCTMGLLight: UIView, RCTMGLMapComponent2 {
   weak var bridge : RCTBridge! = nil
   weak var map: MapboxMap! = nil
   @objc var reactStyle : [String:Any]! = nil {
@@ -43,14 +43,14 @@ class RCTMGLLight: UIView, RCTMGLMapComponent {
     return true
   }
 
-  func addToMap(_ map: RCTMGLMapView, style: Style) {
-    self.map = map.mapboxMap
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
+    self.map = map.mapView.mapboxMap
     if (reactStyle != nil) {
       addStyles()
     }
   }
   
-  func removeFromMap(_ map: RCTMGLMapView) {
+  func removeFromMap(_ map: RCTMGLNavigationMapView) {
     self.map = nil
   }
 }

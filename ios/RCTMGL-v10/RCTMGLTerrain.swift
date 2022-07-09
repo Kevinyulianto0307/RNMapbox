@@ -1,8 +1,8 @@
 import MapboxMaps
 
 @objc
-class RCTMGLTerrain : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
-  weak var map : RCTMGLMapView!
+class RCTMGLTerrain : UIView, RCTMGLMapComponent2, RCTMGLSourceConsumer {
+  weak var map : RCTMGLNavigationMapView!
   var style : Style! = nil
   
   var bridge : RCTBridge? = nil
@@ -46,7 +46,7 @@ class RCTMGLTerrain : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
   
-  func addToMap(_ map: RCTMGLMapView, style: Style) {
+  func addToMap(_ map: RCTMGLNavigationMapView, style: Style) {
     self.map = map
     self.style = style
     
@@ -59,10 +59,10 @@ class RCTMGLTerrain : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
   
-  func addToMap(_ map: RCTMGLMapView) {
+  func addToMap(_ map: RCTMGLNavigationMapView) {
     self.map = map
   
-    guard let mapboxMap = map.mapboxMap else {
+      guard let mapboxMap = map.mapView.mapboxMap else {
       return
     }
     
@@ -77,10 +77,10 @@ class RCTMGLTerrain : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     }
   }
   
-  func removeFromMap(_ map: RCTMGLMapView) {
+  func removeFromMap(_ map: RCTMGLNavigationMapView) {
     self.map = nil
     
-    guard let mapboxMap = map.mapboxMap else {
+      guard let mapboxMap = map.mapView.mapboxMap else {
       return
     }
     
@@ -88,7 +88,7 @@ class RCTMGLTerrain : UIView, RCTMGLMapComponent, RCTMGLSourceConsumer {
     removeFromMap(map, style: style)
   }
   
-  func removeFromMap(_ map: RCTMGLMapView, style: Style) {
+  func removeFromMap(_ map: RCTMGLNavigationMapView, style: Style) {
     style.removeTerrain()
   }
 }

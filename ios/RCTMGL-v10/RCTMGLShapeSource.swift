@@ -97,11 +97,11 @@ class RCTMGLShapeSource : RCTMGLSource {
   func doUpdate(_ update:(Style) -> Void) {
     guard let map = self.map,
           let _ = self.source,
-          map.mapboxMap.style.sourceExists(withId: id) else {
+          map.mapView.mapboxMap.style.sourceExists(withId: id) else {
       return
     }
     
-    let style = map.mapboxMap.style
+      let style = map.mapView.mapboxMap.style
     update(style)
   }
   
