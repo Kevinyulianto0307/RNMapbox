@@ -170,20 +170,6 @@ extension RCTMGLMapViewManager {
         resolver(["visibleBounds":  mapView.mapboxMap.coordinateBounds(for: mapView.bounds).toArray()])
       }
   }
-    
-    //MARK - navigation
-    @objc
-    func findRoute(_ reactTag: NSNumber,
-      origin:[NSNumber]?,
-      destination:[NSNumber]?,
-      resolver:@escaping RCTPromiseResolveBlock,
-      rejecter:@escaping RCTPromiseRejectBlock) {
-      withMapView(reactTag, name: "findRoute", rejecter: rejecter)
-      { mapView in
-        mapView.findRoute(origin, destination: destination)
-          resolver(nil)
-      }
-    }
 }
 
 // MARK: - queryRenderedFeatures

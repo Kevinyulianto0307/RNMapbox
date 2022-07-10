@@ -19,6 +19,7 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     var reactOnPress : RCTBubblingEventBlock?
     var reactOnLongPress : RCTBubblingEventBlock?
     var reactOnMapChange : RCTBubblingEventBlock?
+    var reactOnMapError: RCTBubblingEventBlock?
 
     var styleLoaded: Bool = false
     var styleLoadWaiters : [(MapboxMap)->Void] = []
@@ -27,6 +28,13 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     var images : [RCTMGLImages] = []
     var sources : [RCTMGLSource] = []
     
+    // Routes
+    var isRouting: Bool = false
+    var currentRoutes:RouteResponse? = nil
+    var currentNavigationRouteOptions: NavigationRouteOptions? = nil
+    var navigationService: MapboxNavigationService? = nil
+    
+
     var handleMapChangedEvents = Set<RCTMGLEvent.EventType>()
     
     var onStyleLoadedComponents: [RCTMGLMapComponent2] = []
@@ -34,8 +42,6 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     private var isPendingInitialLayout = true
     private var isGestureActive = false
     private var isAnimatingFromGesture = false
-      
-    private var navigationService: MapboxNavigationService?
 
     var layerWaiters : [String:[(String) -> Void]] = [:]
     
@@ -50,11 +56,7 @@ open class RCTMGLNavigationMapView: NavigationMapView {
 //    var mapView : RCTMGLMapView {
 //      get { return self }
 //    }
-      
-    func setNavigationService(_ service: MapboxNavigationService) {
-        self.navigationService = service
-    }
-
+    
     func addToMap(_ subview: UIView) {
       if let mapComponent = subview as? RCTMGLMapComponent2 {
         let style = self.mapView.mapboxMap.style
@@ -102,13 +104,16 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     }
 
     public required override init(frame:CGRect) {
-        ResourceOptionsManager.init(accessToken: MGLModule.accessToken!)
-//      let resourceOptions = ResourceOptions(accessToken: MGLModule.accessToken!)
+      ResourceOptionsManager.init(accessToken: MGLModule.accessToken!)
       super.init(frame: frame)
-//      super.init(frame: frame, mapInitOptions: MapInitOptions(resourceOptions: resourceOptions))
 
       self.mapView.gestures.delegate = self.mapView as? GestureManagerDelegate
 
+      self.delegate = self
+        
+      self.userLocationStyle = nil
+    
+//      overrideLineLayerColor()
       setupEvents()
     }
     
@@ -118,6 +123,29 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     
     func layerAdded (_ layer: Layer) {
         // TODO
+    }
+    
+    func overrideLineLayerColor() {
+        let red : UIColor = UIColor(red: 1.0, green: 0, blue: 0, alpha: 1)
+        self.routeCasingColor = red
+        self.routeAlternateColor = red
+        self.routeAlternateCasingColor = red
+        self.traversedRouteColor = red
+        self.maneuverArrowColor = red
+        self.maneuverArrowStrokeColor = red
+        
+
+        self.trafficUnknownColor = red
+        self.trafficLowColor = red
+        self.trafficModerateColor = red
+        self.trafficHeavyColor = red
+        self.trafficSevereColor = red
+        self.alternativeTrafficUnknownColor = red
+        self.alternativeTrafficLowColor = red
+        self.alternativeTrafficModerateColor = red
+        self.alternativeTrafficHeavyColor = red
+        self.alternativeTrafficSevereColor = red
+        self.routeRestrictedAreaColor = red
     }
     
     func waitForLayerWithID(_ layerId: String, _  callback: @escaping (_ layerId: String) -> Void) {
@@ -330,14 +358,135 @@ open class RCTMGLNavigationMapView: NavigationMapView {
 // MARK: - navigation
 extension RCTMGLNavigationMapView: NavigationServiceDelegate {
     
+    private func setNavigationService(_ service: MapboxNavigationService) {
+          self.navigationService = service
+    }
+    
+    // STUB
+    public func navigationService(_ service: NavigationService, didUpdate progress: RouteProgress, with location: CLLocation, rawLocation: CLLocation) {
+    
+        let locationMatchEvent = RCTMGLEvent(type: .OnLocationMatcherChange, payload: [
+            "latitude": location.coordinate.latitude,
+            "longitude": location.coordinate.longitude
+        ])
+        self.fireEvent(event:locationMatchEvent, callback: reactOnMapChange)
+        
+        let activeLegPayload = [
+            "currentStepName": progress.currentLegProgress.currentStepProgress.step.names ?? [],
+            "currentStepIndex": progress.currentLegProgress.stepIndex
+        ] as [String : Any]
+        
+        let routeProgressEvent = RCTMGLEvent(type: .OnRouteProgressChange, payload: [
+            "activeLegPayload": activeLegPayload,
+            "distanceTraveled": progress.distanceTraveled,
+            "distanceRemaining": progress.distanceRemaining,
+            "durationRemaining": progress.durationRemaining,
+            "fractionTraveled": progress.fractionTraveled,
+        ])
+        self.fireEvent(event: routeProgressEvent, callback: reactOnMapChange)
+        
+        // update route line
+        self.show([progress.route], legIndex: progress.legIndex)
+        
+        if progress.isFinalLeg && progress.currentLegProgress.userHasArrivedAtWaypoint && progress.currentLegProgress.distanceRemaining <= 0 {
+            self.removeRoutes()
+        } else {
+            updateUpcomingRoutePointIndex(routeProgress: progress)
+            travelAlongRouteLine(to: location.coordinate)
+        }
+    }
+    
+    public func navigationService(_ service: NavigationService, willBeginSimulating progress: RouteProgress, becauseOf reason: SimulationIntent) {
+        let event = RCTMGLEvent(type: .OnNavigationStarted, payload: nil);
+        self.fireEvent(event:event, callback: reactOnMapChange)
+    }
+    
+    public func navigationService(_ service: NavigationService, didFailToRerouteWith error: Error) {
+        print("failReroute:", error.localizedDescription)
+    }
+    
+    public func navigationService(_ service: NavigationService, didArriveAt waypoint: Waypoint) -> Bool {
+        let locationMatchEvent = RCTMGLEvent(type: .OnLocationMatcherChange, payload: [
+            "latitude": waypoint.coordinate.latitude,
+            "longitude": waypoint.coordinate.longitude
+        ])
+        self.fireEvent(event: locationMatchEvent, callback: reactOnMapChange)
+        
+        let onArrivalEvent = RCTMGLEvent(type: .OnArrival, payload: nil);
+        self.fireEvent(event:onArrivalEvent, callback: reactOnMapChange)
+        self.navigationService?.endNavigation()
+        return true
+    }
+    
+    @objc
+    func startRoute(_ shouldSimulate: Bool) -> Void {
+        if (self.currentRoutes == nil || self.currentNavigationRouteOptions == nil) {
+            let payload = [
+                "code": RCTMGLEvent.StatusCode.ERROR_START_ROUTE_NO_ROUTES.rawValue,
+                "statusText": RCTMGLEvent.StatusType.ERROR_START_ROUTE_NO_ROUTES.rawValue,
+                "message": "Unable to start navigation due no route"
+            ] as [String : Any]
+            RCTMGLUtils.errorCallback(.OnError, payload: payload, callback: reactOnMapError)
+            return
+        }
+        
+        let simulating = shouldSimulate ? SimulationMode.always : SimulationMode.never
+//        let navigationLocManager = NavigationLocationManager()
+//        navigationLocManager.simulatesLocation = shouldSimulate
+        let navigationService = MapboxNavigationService(routeResponse: self.currentRoutes!, routeIndex: 0, routeOptions: self.currentNavigationRouteOptions!, customRoutingProvider: NavigationSettings.shared.directions, credentials: NavigationSettings.shared.directions.credentials, locationSource: nil, eventsManagerType: nil, simulating: simulating, routerType: nil)
+     
+        navigationService.delegate = self
+        navigationService.simulationSpeedMultiplier = 3.0
+        navigationService.start()
+        self.navigationCamera.follow()
+        
+        self.isRouting = true
+        self.navigationService = navigationService
+    }
+    
+    @objc
+    func stopRoute() -> Void {
+        self.navigationCamera.stop()
+        self.isRouting = false
+        self.navigationService?.stop()
+    }
+    
+    @objc
+    func clearRoute() -> Void {
+        self.navigationService?.endNavigation()
+        self.stopRoute()
+        self.removeRoutes()
+        self.currentRoutes = nil
+        self.currentNavigationRouteOptions = nil
+    }
+    
+    @objc
+    func recenter() -> Void {
+        if (self.isRouting) {
+            self.navigationCamera.follow()
+        }
+    }
+    
     @objc
     func findRoute(_ origin:[NSNumber]?, destination:[NSNumber]?) -> Void {
         
         guard let origins = origin else {
+            let payload = [
+                "code": RCTMGLEvent.StatusCode.ERROR_FIND_ROUTE_NO_ORIGIN.rawValue,
+                "statusText": RCTMGLEvent.StatusType.ERROR_FIND_ROUTE_NO_ORIGIN.rawValue,
+                "message": "Unable to find route due no origin coordinate"
+            ] as [String : Any]
+            RCTMGLUtils.errorCallback(.OnError, payload: payload, callback: reactOnMapError)
             return
         }
 
         guard let destinations = destination else {
+            let payload = [
+                "code": RCTMGLEvent.StatusCode.ERROR_FIND_ROUTE_NO_DESTINATION.rawValue,
+                "statusText": RCTMGLEvent.StatusType.ERROR_FIND_ROUTE_NO_DESTINATION.rawValue,
+                "message": "Unable to find route due no origin coordinate"
+            ] as [String : Any]
+            RCTMGLUtils.errorCallback(.OnError, payload: payload , callback: reactOnMapError)
             return
         }
       
@@ -350,39 +499,76 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
         Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
             switch result {
                 case .failure(let error):
-                    print(error.localizedDescription)
-                    //throw error
-                case .success(let response):
+                    let payload = [
+                        "code": RCTMGLEvent.StatusCode.ERROR_FIND_ROUTE_API.rawValue,
+                        "statusText": RCTMGLEvent.StatusType.ERROR_FIND_ROUTE_API.rawValue,
+                        "message": error.localizedDescription
+                    ] as [String : Any]
+                    RCTMGLUtils.errorCallback(.OnError, payload: payload , callback: self?.reactOnMapError)
+                case .success(let response): do {
                     guard let strongSelf = self else {
                             return
                         }
-                    let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: routeOptions, customRoutingProvider: NavigationSettings.shared.directions, credentials: NavigationSettings.shared.directions.credentials, locationSource: nil, eventsManagerType: nil, simulating: .always, routerType: nil)
-
-                    self?.setNavigationService(navigationService)
-                    let navigationOptions = NavigationOptions(navigationService: navigationService)
-                
-            
-                    let navigationViewController = NavigationViewController(for: response, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
                     
                     if (response.routes == nil || response.routes!.isEmpty) {
-                        return; //@TODO wizard - show error
+                        let payload = [
+                            "code": RCTMGLEvent.StatusCode.ERROR_FIND_ROUTE_NO_ROUTES.rawValue,
+                            "statusText": RCTMGLEvent.StatusType.ERROR_FIND_ROUTE_NO_ROUTES.rawValue,
+                            "message": "Unable to find route from origin to destination"
+                        ] as [String : Any]
+                        RCTMGLUtils.errorCallback(.OnError, payload: payload , callback: self?.reactOnMapError)
+                        return;
                     }
                 
-                strongSelf.show(response.routes ?? [])
-//                strongSelf.present
-                // Pass the generated route response to the the NavigationViewController
-//                    navigationViewController.modalPresentationStyle = .fullScreen
-
-//                    navigationViewController.present(navigationViewController, animated: true)
+//                    return pointAnnotationManager?.annotations.filter({ $0.id == identifier }) ?? []
+                    
+                    strongSelf.show(response.routes ?? [])
+                    self?.currentRoutes = response
+                    self?.currentNavigationRouteOptions = routeOptions
+                    let event = RCTMGLEvent(type: .OnFindRouteSuccess, payload: nil)
+                    self?.fireEvent(event: event, callback: self?.reactOnMapChange)
+                }
             }
         }
     }
     
 }
 
+
+// MARK: - NavigationMapViewDelegate
+extension RCTMGLNavigationMapView: NavigationMapViewDelegate {
+    public func navigationMapView(_ navigationMapView: NavigationMapView, routeLineLayerWithIdentifier identifier: String, sourceIdentifier: String) -> LineLayer? {
+        var lineLayer = LineLayer(id: identifier)
+        lineLayer.source = sourceIdentifier
+
+        lineLayer.lineColor = .constant(.init(#colorLiteral(red: 1.0, green: 0, blue: 0, alpha: 1)))
+        lineLayer.lineWidth = .constant(8.0)
+        lineLayer.lineJoin = .constant(.round)
+        lineLayer.lineCap = .constant(.round)
+        return lineLayer
+    }
+
+    public func navigationMapView(_ navigationMapView: NavigationMapView, routeCasingLineLayerWithIdentifier identifier: String, sourceIdentifier: String) -> LineLayer? {
+        var lineLayer = LineLayer(id: identifier)
+        lineLayer.source = sourceIdentifier
+
+        lineLayer.lineColor = .constant(.init(#colorLiteral(red: 1.0, green: 0, blue: 0, alpha: 1)))
+        lineLayer.lineWidth = .constant(8.0)
+        lineLayer.lineJoin = .constant(.round)
+        lineLayer.lineCap = .constant(.round)
+        return lineLayer
+    }
+    
+    
+}
+
 // MARK: - event handlers
 
 extension RCTMGLNavigationMapView {
+  @objc func setReactOnMapError(_ value: @escaping RCTBubblingEventBlock) {
+     self.reactOnMapError = value
+  }
+    
   @objc func setReactOnMapChange(_ value: @escaping RCTBubblingEventBlock) {
     self.reactOnMapChange = value
     
@@ -546,6 +732,7 @@ extension RCTMGLNavigationMapView {
     let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(doHandleLongPress(_:)))
     self.mapView.addGestureRecognizer(longPressGestureRecognizer)
   }
+ 
 }
 
 extension RCTMGLNavigationMapView: GestureManagerDelegate {

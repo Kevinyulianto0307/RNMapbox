@@ -50,6 +50,10 @@ class MGLModule : NSObject {
           "DidFinishLoadingMap": RCTMGLEvent.EventType.didFinishLoadingMap.rawValue,
           "DidFinishRenderingFrameFully":  RCTMGLEvent.EventType.didFinishRenderingFully.rawValue,
           "DidFinishRenderingFrame": RCTMGLEvent.EventType.didFinishRendering.rawValue,
+          "OnFindRouteSuccess": RCTMGLEvent.EventType.OnFindRouteSuccess.rawValue,
+          "OnLocationMatcherChange": RCTMGLEvent.EventType.OnLocationMatcherChange.rawValue,
+          "OnArrival": RCTMGLEvent.EventType.OnArrival.rawValue,
+          "OnNavigationStarted": RCTMGLEvent.EventType.OnNavigationStarted.rawValue,
         ],
       "OfflineCallbackName":
         [

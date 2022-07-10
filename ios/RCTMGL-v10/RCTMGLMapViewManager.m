@@ -81,11 +81,4 @@ RCT_EXTERN_METHOD(setHandledMapChangedEvents:(nonnull NSNumber*)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
-// MARK: - Navigation
-RCT_EXTERN_METHOD(findRoute:(nonnull NSNumber*)reactTag
-                  origin:(nullable NSArray<NSNumber*>*)origin
-                  destination:(nullable NSArray<NSNumber*>*)destination
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-
 @end

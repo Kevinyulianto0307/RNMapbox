@@ -50,4 +50,15 @@ class RCTMGLUtils {
       }
     }
   }
+    
+    
+    static func errorCallback(_ type: RCTMGLEvent.EventType, payload: [String:Any]?, callback: RCTBubblingEventBlock?) {
+        guard let callback = callback else {
+          Logger.log(level: .error, message: "fireEvent failed: \(type) - callback is null")
+          return
+        }
+        
+        let event = RCTMGLEvent(type:.OnError, payload: payload)
+        callback(event.toJSON())
+    }
 }
