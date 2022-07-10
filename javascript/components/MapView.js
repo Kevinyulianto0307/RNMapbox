@@ -329,7 +329,7 @@ class MapView extends NativeBridgeComponent(React.Component) {
     this._onLongPress = this._onLongPress.bind(this);
     this._onChange = this._onChange.bind(this);
     this._onLayout = this._onLayout.bind(this);
-    this._onError = this._onError.bind(this);
+    this._onMapError = this._onMapError.bind(this);
 
     // debounced map change methods
     this._onDebouncedRegionWillChange = debounce(
@@ -389,6 +389,7 @@ class MapView extends NativeBridgeComponent(React.Component) {
       addIfHasHandler('DidFinishRenderingMap');
       addIfHasHandler('DidFinishRenderingMapFully');
       addIfHasHandler('DidFinishLoadingStyle');
+      addIfHasHandler('OnFindRouteSuccess');
 
       if (addIfHasHandler('MapIdle')) {
         if (props.onRegionDidChange) {
@@ -731,9 +732,10 @@ class MapView extends NativeBridgeComponent(React.Component) {
     this.setState({ region: payload });
   }
 
-  _onError(payload) {
-    if (isFunction(this.props.onError)) {
-      this.props.onError(payload);
+  _onMapError(e) {
+    if (isFunction(this.props.onMapError)) {
+      const { payload } = e.nativeEvent;
+      this.props.onMapError(payload);
     }
   }
 
@@ -811,6 +813,9 @@ class MapView extends NativeBridgeComponent(React.Component) {
         break;
       case MapboxGL.EventTypes.OnRouteOff:
         propName = 'onRouteOff';
+        break;
+      case MapboxGL.EventTypes.OnFindRouteSuccess:
+        propName = 'onFindRouteSuccess';
         break;
       case MapboxGL.EventTypes.OnNavigationStarted:
         propName = 'onNavigationStarted';
@@ -910,7 +915,7 @@ class MapView extends NativeBridgeComponent(React.Component) {
     const callbacks = {
       ref: (nativeRef) => this._setNativeRef(nativeRef),
       onPress: this._onPress,
-      onError: this._onError,
+      onMapError: this._onMapError,
       onLongPress: this._onLongPress,
       onMapChange: this._onChange,
       onAndroidCallback: isAndroid() ? this._onAndroidCallback : undefined,
