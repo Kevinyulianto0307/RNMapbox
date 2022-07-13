@@ -54,6 +54,8 @@ class MGLModule : NSObject {
           "OnLocationMatcherChange": RCTMGLEvent.EventType.OnLocationMatcherChange.rawValue,
           "OnArrival": RCTMGLEvent.EventType.OnArrival.rawValue,
           "OnNavigationStarted": RCTMGLEvent.EventType.OnNavigationStarted.rawValue,
+          "OnRouteProgressChange": RCTMGLEvent.EventType.OnRouteProgressChange.rawValue,
+          "OnRouteOff": RCTMGLEvent.EventType.OnRouteOff.rawValue,
         ],
       "OfflineCallbackName":
         [
