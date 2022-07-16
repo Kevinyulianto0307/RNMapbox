@@ -111,6 +111,7 @@ declare namespace MapboxGL {
   function requestAndroidLocationPermissions(): Promise<boolean>;
 
   const offlineManager: OfflineManager;
+  const searchManager: SearchManager;
   const snapshotManager: SnapshotManager;
   const locationManager: LocationManager;
 
@@ -421,6 +422,11 @@ declare namespace MapboxGL {
       errorListener?: (pack: OfflinePack, err: object) => void,
     ): void;
     unsubscribe(packName: string): void;
+  }
+
+  class SearchManager {
+    static forwardSearch(queryText: string): Promise<any>;
+    static stopSearch(): Promise<any>;
   }
 
   class SnapshotManager {

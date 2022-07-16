@@ -26,6 +26,7 @@ import BackgroundLayer from './components/BackgroundLayer';
 import Terrain from './components/Terrain';
 import locationManager from './modules/location/locationManager';
 import offlineManager from './modules/offline/offlineManager';
+import searchManager from './modules/search/SearchManager';
 import snapshotManager from './modules/snapshot/snapshotManager';
 import MarkerView from './components/MarkerView';
 import Animated from './utils/animated/Animated';
@@ -146,6 +147,7 @@ export {
   Terrain,
   locationManager,
   offlineManager,
+  searchManager,
   snapshotManager,
   AnimatedMapPoint,
   AnimatedCoordinatesArray,
