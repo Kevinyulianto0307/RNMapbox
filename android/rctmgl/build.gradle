@@ -103,6 +103,7 @@ dependencies {
             implementation 'com.mapbox.maps:android:10.5.0'
             implementation 'com.mapbox.mapboxsdk:mapbox-sdk-turf:6.5.0'
             implementation "com.mapbox.navigation:android:2.5.1"
+            implementation "com.mapbox.search:mapbox-search-android:1.0.0-beta.30"
         }
     }
 

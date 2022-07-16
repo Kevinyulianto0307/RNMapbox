@@ -11,8 +11,9 @@ import com.mapbox.rctmgl.components.annotation.RCTMGLPointAnnotationManager;
 import com.mapbox.rctmgl.components.camera.RCTMGLCameraManager;
 import com.mapbox.rctmgl.components.images.RCTMGLImagesManager;
 import com.mapbox.rctmgl.components.location.RCTMGLNativeUserLocationManager;
-import com.mapbox.rctmgl.components.mapview.AndroidMapboxViewManager;
+import com.mapbox.rctmgl.components.mapview.RCTAndroidMapViewManager;
 import com.mapbox.rctmgl.components.mapview.RCTMGLAndroidTextureMapViewManager;
+import com.mapbox.rctmgl.components.mapview.RCTMGLMapViewManager;
 import com.mapbox.rctmgl.components.styles.layers.RCTMGLBackgroundLayerManager;
 import com.mapbox.rctmgl.components.styles.layers.RCTMGLCircleLayerManager;
 import com.mapbox.rctmgl.components.styles.layers.RCTMGLFillExtrusionLayerManager;
@@ -29,6 +30,7 @@ import com.mapbox.rctmgl.components.styles.sources.RCTMGLRasterSourceManager;
 import com.mapbox.rctmgl.components.styles.sources.RCTMGLShapeSourceManager;
 import com.mapbox.rctmgl.components.styles.sources.RCTMGLVectorSourceManager;
 import com.mapbox.rctmgl.components.styles.terrain.RCTMGLTerrainManager;
+import com.mapbox.rctmgl.modules.MGLMapboxSearchController;
 import com.mapbox.rctmgl.modules.RCTMGLLocationModule;
 import com.mapbox.rctmgl.modules.RCTMGLLogging;
 import com.mapbox.rctmgl.modules.RCTMGLModule;
@@ -53,6 +55,8 @@ public class RCTMGLPackage implements ReactPackage {
 
         modules.add(new RCTMGLLogging(reactApplicationContext));
 
+        modules.add(new MGLMapboxSearchController(reactApplicationContext));
+
         return modules;
     }
 
@@ -67,9 +71,9 @@ public class RCTMGLPackage implements ReactPackage {
 
         // components
         managers.add(new RCTMGLCameraManager(reactApplicationContext));
-//        managers.add(new RCTMGLAndroidTextureMapViewManager(reactApplicationContext));
-//        managers.add(new RCTMGLMapViewManager(reactApplicationContext));
-        managers.add(new AndroidMapboxViewManager(reactApplicationContext));
+        managers.add(new RCTMGLAndroidTextureMapViewManager(reactApplicationContext));
+        managers.add(new RCTMGLMapViewManager(reactApplicationContext));
+        managers.add(new RCTAndroidMapViewManager(reactApplicationContext));
         managers.add(new RCTMGLMarkerViewManager(reactApplicationContext));
 
         managers.add(new RCTMGLLightManager());

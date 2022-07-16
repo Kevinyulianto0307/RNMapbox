@@ -3,7 +3,7 @@
 
 @interface RCT_EXTERN_MODULE(MGLMapboxSearchController, NSObject)
 
-RCT_EXTERN_METHOD(forwardSearch:(String)query
+RCT_EXTERN_METHOD(forwardSearch:(NSString)query
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject);
 

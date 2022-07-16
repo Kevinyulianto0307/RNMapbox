@@ -7,37 +7,19 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.mapbox.geojson.Point
 import com.mapbox.rctmgl.events.constants.EventKeys
+import com.mapbox.rctmgl.modules.RCTMGLModule
 import com.mapbox.rctmgl.utils.extensions.toCoordinate
 import okhttp3.internal.toImmutableMap
 
-class AndroidMapboxViewManager(context: ReactApplicationContext?) :
+class RCTAndroidMapViewManager(val context: ReactApplicationContext?) :
     RCTMGLMapViewManager(context) {
-//    private var accessToken: String? = null
-
-    init {
-//        context?.runOnUiQueueThread {
-//            try {
-//                val app = context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
-//                val bundle = app.metaData
-//                val accessToken = bundle.getString("MAPBOX_ACCESS_TOKEN")
-//                this.accessToken = accessToken
-////                val telemetry = Mapbox.getTelemetry()
-////                telemetry!!.setUserTelemetryRequestState(false)
-//                ResourceOptionsManager.getDefault(context, accessToken).update {
-//                    tileStoreUsageMode(TileStoreUsageMode.READ_ONLY)
-//                }
-//            } catch (e: PackageManager.NameNotFoundException) {
-//                e.printStackTrace()
-//            }
-//        }
-    }
 
     override fun getName(): String {
         return REACT_CLASS
     }
 
-    override fun createViewInstance(themedReactContext: ThemedReactContext): AndroidMapboxView {
-        return AndroidMapboxView(themedReactContext, this)
+    override fun createViewInstance(themedReactContext: ThemedReactContext): RCTAndroidMapView {
+        return RCTAndroidMapView(themedReactContext, this, RCTMGLModule.getAccessToken(this.context))
     }
 
     override fun customEvents(): Map<String, String> {
@@ -76,28 +58,28 @@ class AndroidMapboxViewManager(context: ReactApplicationContext?) :
         super.receiveCommand(mapView, commandID, args)
         when (commandID) {
             METHOD_FIND_ROUTE -> {
-                (mapView as AndroidMapboxView).findRoute(
+                (mapView as RCTAndroidMapView).findRoute(
                     args?.getArray(1)?.toCoordinate(),
                     args?.getArray(2)?.toCoordinate()
                 )
             }
             METHOD_STOP_NAVIGATION -> {
-                (mapView as AndroidMapboxView).stopRoute(args?.getBoolean(1)?: false)
+                (mapView as RCTAndroidMapView).stopRoute(args?.getBoolean(1)?: false)
             }
             METHOD_START_NAVIGATION -> {
-                (mapView as AndroidMapboxView).startRoute(args?.getBoolean(1)?: false)
+                (mapView as RCTAndroidMapView).startRoute(args?.getBoolean(1)?: false)
             }
             METHOD_RESET_ROUTE -> {
-                (mapView as AndroidMapboxView).clearRoute()
+                (mapView as RCTAndroidMapView).clearRoute()
             }
             METHOD_RECENTER -> {
-                (mapView as AndroidMapboxView).recenter()
+                (mapView as RCTAndroidMapView).recenter()
             }
         }
     }
 
     @ReactProp(name = "origin")
-    fun setOrigin(view: AndroidMapboxView, sources: ReadableArray?) {
+    fun setOrigin(view: RCTAndroidMapView, sources: ReadableArray?) {
         if (sources == null) {
             view.setOrigin(null)
             return
@@ -106,7 +88,7 @@ class AndroidMapboxViewManager(context: ReactApplicationContext?) :
     }
 
     @ReactProp(name = "destination")
-    fun setDestination(view: AndroidMapboxView, sources: ReadableArray?) {
+    fun setDestination(view: RCTAndroidMapView, sources: ReadableArray?) {
         if (sources == null) {
             view.setDestination(null)
             return
@@ -116,8 +98,8 @@ class AndroidMapboxViewManager(context: ReactApplicationContext?) :
 
 
     companion object {
-        const val REACT_CLASS = "AndroidMapboxViewManager"
-        const val LOG_TAG = "AndroidMapboxViewManager"
+        const val REACT_CLASS = "RCTAndroidMapView"
+        const val LOG_TAG = "RCTAndroidMapView"
 
         const val METHOD_FIND_ROUTE = 14
         const val METHOD_STOP_NAVIGATION = 15

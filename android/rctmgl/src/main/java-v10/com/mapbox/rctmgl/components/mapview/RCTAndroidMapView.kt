@@ -1,5 +1,6 @@
 package com.mapbox.rctmgl.components.mapview
 
+import android.content.Context
 import android.graphics.Color
 import android.location.Location
 import android.os.Build
@@ -7,7 +8,6 @@ import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactContext
-import com.facebook.react.uimanager.ThemedReactContext
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.Point
@@ -46,31 +46,25 @@ import com.mapbox.navigation.ui.tripprogress.api.MapboxTripProgressApi
 import com.mapbox.navigation.ui.tripprogress.model.*
 import com.mapbox.navigation.utils.internal.toPoint
 import com.mapbox.rctmgl.events.MapChangeEvent
-import com.mapbox.rctmgl.events.NavigationEvent
 import com.mapbox.rctmgl.events.constants.EventTypes
 import com.mapbox.rctmgl.events.constants.StatusCode
 import com.mapbox.rctmgl.events.constants.StatusType
-import com.mapbox.rctmgl.modules.RCTMGLModule
 import com.mapbox.rctmgl.utils.EventHelper
 
 @SuppressWarnings("MissingPermission")
-class AndroidMapboxView(
-    private var mContext: ThemedReactContext,
+class RCTAndroidMapView(
+    context: Context,
     manager: RCTMGLMapViewManager,
-//    private val accessToken: String?,
-) : RCTMGLMapView(mContext, manager) {
+    private val accessToken: String?,
+) : RCTMGLMapView(context, manager) {
 
     private var origin : Point? = null
 
     private var destination: Point? = null
 
-    private var firstTimeInitMapNavigation = false
-
-    private var previousMapNavigationIsSimulation = false
-
     private var isRouting: Boolean = false
 
-    private var eventHelper: EventHelper? = null;
+    private var eventHelper: EventHelper? = null
 
 
     private var mLifeCycleListener: LifecycleEventListener? = null
@@ -83,18 +77,18 @@ class AndroidMapboxView(
     /**
      * Debug tool used to play, pause and seek route progress events that can be used to produce mocked location updates along the route.
      */
-    private lateinit var mMapboxReplayer: MapboxReplayer
+    private var mMapboxReplayer: MapboxReplayer
 
 
     /**
      * Debug tool that mocks location updates with an input from the [mapboxReplayer].
      */
-    private lateinit var replayLocationEngine: ReplayLocationEngine
+    private var replayLocationEngine: ReplayLocationEngine
 
     /**
      * Debug observer that makes sure the replayer has always an up-to-date information to generate mock updates.
      */
-    private lateinit var replayProgressObserver: ReplayProgressObserver
+    private var replayProgressObserver: ReplayProgressObserver
 
 
     /**
@@ -142,8 +136,8 @@ class AndroidMapboxView(
         OffRouteObserver { offRoute ->
             val payload = Arguments.createMap()
             payload.putBoolean("isOffRoute", offRoute)
-            val event = MapChangeEvent(this, EventTypes.ON_ROUTE_OFF, payload)
-            mManager.handleEvent(event)
+            val onRouteOffEvent = MapChangeEvent(this, EventTypes.ON_ROUTE_OFF, payload)
+            mManager.handleEvent(onRouteOffEvent)
         }
 
     /**
@@ -153,10 +147,8 @@ class AndroidMapboxView(
      * and the updates enhanced by the Navigation SDK (cleaned up and matched to the road).
      */
     private val locationObserver = object : LocationObserver {
-        var firstLocationUpdateReceived = false
 
         override fun onNewRawLocation(rawLocation: Location) {
-            // not handled
             Log.d("locationObserver", "onNewRawLocation" + rawLocation.longitude + ' ' + rawLocation.longitude)
             origin = rawLocation.toPoint()
             navigationLocationProvider.changePosition(
@@ -178,10 +170,10 @@ class AndroidMapboxView(
             } else {
                 payload.putNull("bearingAccuracyDegrees")
             }
-            payload.putDouble("speed", rawLocation.speed.toDouble());
-            payload.putDouble("time", rawLocation.time.toDouble());
-            val locationMatcherChangeEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
-            mManager.handleEvent(locationMatcherChangeEvent)
+            payload.putDouble("speed", rawLocation.speed.toDouble())
+            payload.putDouble("time", rawLocation.time.toDouble())
+            val onLocationMatcherChangeEvent = MapChangeEvent(this@RCTAndroidMapView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
+            mManager.handleEvent(onLocationMatcherChangeEvent)
         }
 
         /**
@@ -212,11 +204,11 @@ class AndroidMapboxView(
             } else {
                 payload.putNull("bearingAccuracyDegrees")
             }
-            payload.putDouble("speed", enhancedLocation.speed.toDouble());
-            payload.putDouble("time", enhancedLocation.time.toDouble());
+            payload.putDouble("speed", enhancedLocation.speed.toDouble())
+            payload.putDouble("time", enhancedLocation.time.toDouble())
 
-            val locationMatcherChangeEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
-            mManager.handleEvent(locationMatcherChangeEvent)
+            val onLocationMatcherChangeEvent = MapChangeEvent(this@RCTAndroidMapView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
+            mManager.handleEvent(onLocationMatcherChangeEvent)
 
 
             // if this is the first location update the activity has received,
@@ -236,7 +228,7 @@ class AndroidMapboxView(
      * Gets notified with progress along the currently active route.
      */
     private val routeProgressObserver = RouteProgressObserver { routeProgress ->
-        Log.d("routeProgressObserver", "routeProgress");
+        Log.d("routeProgressObserver", "routeProgress")
 //         update the camera position to account for the progressed fragment of the route
         viewportDataSource.onRouteProgressChanged(routeProgress)
         viewportDataSource.evaluate()
@@ -307,8 +299,8 @@ class AndroidMapboxView(
         routeProgressPayload.putDouble("durationRemaining", routeProgress.durationRemaining)
         routeProgressPayload.putDouble("fractionTraveled", routeProgress.fractionTraveled.toDouble())
         routeProgressPayload.putDouble("distanceRemaining", routeProgress.distanceRemaining.toDouble())
-        val routeProgressChangeEvent = MapChangeEvent(this, EventTypes.ON_ROUTE_PROGRESS_CHANGE, routeProgressPayload)
-        mManager.handleEvent(routeProgressChangeEvent)
+        val onRouteProgressChangeEvent = MapChangeEvent(this, EventTypes.ON_ROUTE_PROGRESS_CHANGE, routeProgressPayload)
+        mManager.handleEvent(onRouteProgressChangeEvent)
     }
 
     /**
@@ -388,14 +380,14 @@ class AndroidMapboxView(
 //            }
             navigationCamera.requestNavigationCameraToOverview()
             navigationCamera.requestNavigationCameraToIdle()
-            val onArrivalEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_ARRIVAL)
+            val onArrivalEvent = MapChangeEvent(this@RCTAndroidMapView, EventTypes.ON_ARRIVAL)
             mManager.handleEvent(onArrivalEvent)
         }
     }
 
     override fun onStop() {
         unregisterObserver()
-        val reactContext = mContext as ReactContext
+        val reactContext = context as ReactContext
         reactContext.removeLifecycleEventListener(mLifeCycleListener)
         isRouting = false
 //        cleanUp()
@@ -430,16 +422,16 @@ class AndroidMapboxView(
             }
             shouldSimulate -> {
                 MapboxNavigationProvider.create(
-                    NavigationOptions.Builder(mContext)
-                        .accessToken(RCTMGLModule.getAccessToken(reactContext = mContext.reactApplicationContext))
+                    NavigationOptions.Builder(context)
+                        .accessToken(accessToken)
                         .locationEngine(replayLocationEngine)
                         .build()
                 )
             }
             else -> {
                 MapboxNavigationProvider.create(
-                    NavigationOptions.Builder(mContext)
-                        .accessToken(RCTMGLModule.getAccessToken(reactContext = mContext.reactApplicationContext))
+                    NavigationOptions.Builder(context)
+                        .accessToken(accessToken)
                         .build()
                 )
             }
@@ -449,7 +441,7 @@ class AndroidMapboxView(
             // if simulation is enabled (ReplayLocationEngine set to NavigationOptions)
             // but we're not simulating yet,
             // push a single location sample to establish origin
-            if (origin == null) return;
+            if (origin == null) return
             val currentOrigin = Point.fromLngLat(origin!!.longitude(), origin!!.latitude())
             mMapboxReplayer.pushEvents(
                 listOf(
@@ -467,18 +459,18 @@ class AndroidMapboxView(
             MapboxDistanceFormatter(distanceFormatterOptions)
         )
         tripProgressApi = MapboxTripProgressApi(
-            TripProgressUpdateFormatter.Builder(mContext)
+            TripProgressUpdateFormatter.Builder(context)
                 .distanceRemainingFormatter(
                     DistanceRemainingFormatter(distanceFormatterOptions)
                 )
                 .timeRemainingFormatter(
-                    TimeRemainingFormatter(mContext)
+                    TimeRemainingFormatter(context)
                 )
                 .percentRouteTraveledFormatter(
                     PercentDistanceTraveledFormatter()
                 )
                 .estimatedTimeToArrivalFormatter(
-                    EstimatedTimeToArrivalFormatter(mContext, TimeFormat.TWELVE_HOURS)
+                    EstimatedTimeToArrivalFormatter(context, TimeFormat.TWELVE_HOURS)
                 )
                 .build()
         )
@@ -499,7 +491,7 @@ class AndroidMapboxView(
             .routeLineColorResources(customColorResources)
             .build()
 
-        val mapboxRouteLineOptions = MapboxRouteLineOptions.Builder(mContext)
+        val mapboxRouteLineOptions = MapboxRouteLineOptions.Builder(context)
             .withRouteLineResources(routeLineResources)
             .withRouteLineBelowLayerId("road-label")
             .build()
@@ -509,7 +501,7 @@ class AndroidMapboxView(
     }
 
     private fun setLifecycleListeners() {
-        val reactContext = mContext as ReactContext
+        val reactContext = context as ReactContext
         mLifeCycleListener = object : LifecycleEventListener {
             override fun onHostResume() {
 //                onResume()
@@ -546,16 +538,15 @@ class AndroidMapboxView(
                 routeLineView.renderRouteDrawData(it, value)
             }
             if (routes.isNotEmpty()) {
-//                val findRouteSuccessEvent =
-//                    NavigationEvent(this, EventTypes.ON_FIND_ROUTE_SUCCESS)
-                val findRouteSuccessEvent = MapChangeEvent(this, EventTypes.ON_FIND_ROUTE_SUCCESS)
-                mManager.handleEvent(findRouteSuccessEvent)
+                val onFindRouteSuccessEvent =
+                    MapChangeEvent(this, EventTypes.ON_FIND_ROUTE_SUCCESS)
+                mManager.handleEvent(onFindRouteSuccessEvent)
             }
         }
     }
 
     private fun registerObserver() {
-        if (mMapboxNavigation == null || (mMapboxNavigation != null && mMapboxNavigation!!.isDestroyed)) return;
+        if (mMapboxNavigation == null || (mMapboxNavigation != null && mMapboxNavigation!!.isDestroyed)) return
         mMapboxNavigation?.registerRoutesObserver(routesObserver)
         mMapboxNavigation?.registerRouteProgressObserver(routeProgressObserver)
         mMapboxNavigation?.registerLocationObserver(locationObserver)
@@ -565,7 +556,7 @@ class AndroidMapboxView(
     }
 
     private fun unregisterObserver() {
-        if (mMapboxNavigation == null || (mMapboxNavigation != null && mMapboxNavigation!!.isDestroyed)) return;
+        if (mMapboxNavigation == null || (mMapboxNavigation != null && mMapboxNavigation!!.isDestroyed)) return
 
         mMapboxNavigation?.unregisterRoutesObserver(routesObserver)
         mMapboxNavigation?.unregisterRouteProgressObserver(routeProgressObserver)
@@ -615,7 +606,7 @@ class AndroidMapboxView(
 
         val routeBuilder = RouteOptions.builder()
             .applyDefaultNavigationOptions()
-            .applyLanguageAndVoiceUnitOptions(mContext)
+            .applyLanguageAndVoiceUnitOptions(context)
             .coordinatesList(listOf(origin, destination))
             .profile(DirectionsCriteria.PROFILE_DRIVING)
             .steps(true)
@@ -652,7 +643,7 @@ class AndroidMapboxView(
                 ) {
                     if (routes.isEmpty()) {
                         searchedRoutes = emptyList()
-                        eventHelper?.sendErrorToReact(this@AndroidMapboxView, StatusType.ERROR_FIND_ROUTE_NO_ROUTES, StatusCode.ERROR_FIND_ROUTE_NO_ROUTES, "Unable to find route from origin to destination")
+                        eventHelper?.sendErrorToReact(this@RCTAndroidMapView, StatusType.ERROR_FIND_ROUTE_NO_ROUTES, StatusCode.ERROR_FIND_ROUTE_NO_ROUTES, "Unable to find route from origin to destination")
                         return
                     }
                     setRouteNavigation(routes)
@@ -663,7 +654,7 @@ class AndroidMapboxView(
                     routeOptions: RouteOptions
                 ) {
                     searchedRoutes = emptyList()
-                    eventHelper?.sendErrorToReact(this@AndroidMapboxView, StatusType.ERROR_FIND_ROUTE_API, StatusCode.ERROR_FIND_ROUTE_API, reasons.firstOrNull()?.message?: "Unable to find route due unexpected error")
+                    eventHelper?.sendErrorToReact(this@RCTAndroidMapView, StatusType.ERROR_FIND_ROUTE_API, StatusCode.ERROR_FIND_ROUTE_API, reasons.firstOrNull()?.message?: "Unable to find route due unexpected error")
                 }
 
                 override fun onCanceled(routeOptions: RouteOptions, routerOrigin: RouterOrigin) {
@@ -689,12 +680,18 @@ class AndroidMapboxView(
         // initialize maneuver api that feeds the data to the top banner maneuver view
 //        navigationCamera.requestNavigationCameraToIdle()
         isRouting = true
-//        val navigationStartedEvent = NavigationEvent(this, EventTypes.ON_NAVIGATION_STARTED)
-        val navigationStartedEvent = MapChangeEvent(this, EventTypes.ON_NAVIGATION_STARTED)
-        mManager.handleEvent(navigationStartedEvent)
-        mMapboxNavigation!!.startTripSession(true)
+
+
+        val onNavigationStartedEvent = MapChangeEvent(this, EventTypes.ON_NAVIGATION_STARTED)
+//        val navigationStartedEvent = NavigationEvent(this, NavigationEventTypes.ON_NAVIGATION_STARTED)
+        mManager.handleEvent(onNavigationStartedEvent)
+
+
         navigationCamera.requestNavigationCameraToFollowing()
+        mMapboxNavigation!!.startTripSession(true) // start listening session
+
         if (shouldSimulate) {
+            //  run simulation
             mMapboxReplayer.run {
                 stop()
                 clearEvents()
