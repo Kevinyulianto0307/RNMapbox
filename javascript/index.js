@@ -105,6 +105,7 @@ MapboxGL.Terrain = Terrain;
 MapboxGL.locationManager = locationManager;
 MapboxGL.offlineManager = offlineManager;
 MapboxGL.snapshotManager = snapshotManager;
+MapboxGL.searchManager = searchManager;
 
 // animated
 MapboxGL.Animated = Animated;

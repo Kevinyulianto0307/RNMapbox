@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 
-const SearchController = NativeModules.RCTMapboxSearchController;
+const SearchController = NativeModules.MGLMapboxSearchController;
 
 class SearchManager {
   constructor() {}
@@ -15,5 +15,5 @@ class SearchManager {
   }
 }
 
-const searchManager = SearchManager();
+const searchManager = new SearchManager();
 export default searchManager;

@@ -2,8 +2,8 @@ import Foundation
 import MapboxSearch
 
 
-@objc(RCTMapboxSearchController)
-class RCTMapboxSearchController: NSObject {
+@objc(MGLMapboxSearchController)
+class MGLMapboxSearchController: NSObject {
   let searchEngine = SearchEngine()
   var resolver: RCTPromiseResolveBlock? = nil
   var rejecter: RCTPromiseRejectBlock? = nil
@@ -28,7 +28,7 @@ class RCTMapboxSearchController: NSObject {
   
 }
 
-extension RCTMapboxSearchController: SearchEngineDelegate {
+extension MGLMapboxSearchController: SearchEngineDelegate {
   func suggestionsUpdated(suggestions: [SearchSuggestion], searchEngine: SearchEngine) {
     print("Number of search results: \(searchEngine.suggestions.count)")
     
