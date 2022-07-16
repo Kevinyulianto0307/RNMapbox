@@ -1,13 +1,10 @@
 package com.mapbox.rctmgl.modules
 
 import android.app.Application
-import android.content.pm.PackageManager
 import android.util.Log
 import com.facebook.react.bridge.*
 import com.mapbox.rctmgl.events.constants.StatusCode
 import com.mapbox.rctmgl.events.constants.StatusType
-//import com.mapbox.maps.ResourceOptionsManager
-//import com.mapbox.maps.TileStoreUsageMode
 import com.mapbox.search.*
 import com.mapbox.search.result.SearchResult
 import com.mapbox.search.result.SearchSuggestion
@@ -16,9 +13,9 @@ import java.lang.Exception
 /**
  * Search SDK for handling query search, for now it will only handle forwardSearch
  */
-class MGLMapboxSearchController(mReactContext: ReactApplicationContext): ReactContextBaseJavaModule(mReactContext) {
+class MGLMapboxSearchController(private val mReactContext: ReactApplicationContext): ReactContextBaseJavaModule(mReactContext) {
 
-    private var mSearchEngine: SearchEngine
+    private var mSearchEngine: SearchEngine? = null
 
     private var searchRequestTask: SearchRequestTask? = null
 
@@ -47,8 +44,8 @@ class MGLMapboxSearchController(mReactContext: ReactApplicationContext): ReactCo
     @ReactMethod
     fun forwardSearch(querySearch: String, promise: Promise) {
         Log.d(REACT_CLASS, "forwardSearch with query: $querySearch")
-
-        searchRequestTask = mSearchEngine.search(
+        setMapboxSearchSDK()
+        searchRequestTask = mSearchEngine!!.search(
             querySearch,
             SearchOptions(limit = 5), // search all country
             object : SearchSuggestionsCallback {
@@ -67,7 +64,7 @@ class MGLMapboxSearchController(mReactContext: ReactApplicationContext): ReactCo
                         return;
                     }
 
-                    selectResultTask = mSearchEngine.select(suggestion, object:
+                    selectResultTask = mSearchEngine!!.select(suggestion, object:
                         SearchSelectionCallback {
                         override fun onCategoryResult(
                             suggestion: SearchSuggestion,
@@ -131,11 +128,16 @@ class MGLMapboxSearchController(mReactContext: ReactApplicationContext): ReactCo
     override fun getName(): String {
         return REACT_CLASS
     }
-
-    init {
+    
+    private fun setMapboxSearchSDK(): Boolean {
         val application = mReactContext.applicationContext as Application
-        val accessToken = RCTMGLModule.getAccessToken(mReactContext)
 
+        val accessToken = RCTMGLModule.getAccessToken(mReactContext)
+        
+        if (mSearchEngine != null) {
+            return false
+        }
+        
         try {
             MapboxSearchSdk.initialize(
                 application = application,
@@ -153,6 +155,10 @@ class MGLMapboxSearchController(mReactContext: ReactApplicationContext): ReactCo
         }
 
         mSearchEngine = MapboxSearchSdk.getSearchEngine()
+        return true
+    }
+    
+    init {
     }
 
     companion object {
