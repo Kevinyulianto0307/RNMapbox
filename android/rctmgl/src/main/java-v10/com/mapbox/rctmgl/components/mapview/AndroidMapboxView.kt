@@ -52,7 +52,7 @@ import com.mapbox.rctmgl.events.constants.StatusType
 import com.mapbox.rctmgl.utils.EventHelper
 
 @SuppressWarnings("MissingPermission")
-class RCTAndroidMapView(
+class AndroidMapboxView(
     context: Context,
     manager: RCTMGLMapViewManager,
     private val accessToken: String?,
@@ -172,7 +172,7 @@ class RCTAndroidMapView(
             }
             payload.putDouble("speed", rawLocation.speed.toDouble())
             payload.putDouble("time", rawLocation.time.toDouble())
-            val onLocationMatcherChangeEvent = MapChangeEvent(this@RCTAndroidMapView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
+            val onLocationMatcherChangeEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
             mManager.handleEvent(onLocationMatcherChangeEvent)
         }
 
@@ -207,7 +207,7 @@ class RCTAndroidMapView(
             payload.putDouble("speed", enhancedLocation.speed.toDouble())
             payload.putDouble("time", enhancedLocation.time.toDouble())
 
-            val onLocationMatcherChangeEvent = MapChangeEvent(this@RCTAndroidMapView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
+            val onLocationMatcherChangeEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
             mManager.handleEvent(onLocationMatcherChangeEvent)
 
 
@@ -380,7 +380,7 @@ class RCTAndroidMapView(
 //            }
             navigationCamera.requestNavigationCameraToOverview()
             navigationCamera.requestNavigationCameraToIdle()
-            val onArrivalEvent = MapChangeEvent(this@RCTAndroidMapView, EventTypes.ON_ARRIVAL)
+            val onArrivalEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_ARRIVAL)
             mManager.handleEvent(onArrivalEvent)
         }
     }
@@ -643,7 +643,7 @@ class RCTAndroidMapView(
                 ) {
                     if (routes.isEmpty()) {
                         searchedRoutes = emptyList()
-                        eventHelper?.sendErrorToReact(this@RCTAndroidMapView, StatusType.ERROR_FIND_ROUTE_NO_ROUTES, StatusCode.ERROR_FIND_ROUTE_NO_ROUTES, "Unable to find route from origin to destination")
+                        eventHelper?.sendErrorToReact(this@AndroidMapboxView, StatusType.ERROR_FIND_ROUTE_NO_ROUTES, StatusCode.ERROR_FIND_ROUTE_NO_ROUTES, "Unable to find route from origin to destination")
                         return
                     }
                     setRouteNavigation(routes)
@@ -654,7 +654,7 @@ class RCTAndroidMapView(
                     routeOptions: RouteOptions
                 ) {
                     searchedRoutes = emptyList()
-                    eventHelper?.sendErrorToReact(this@RCTAndroidMapView, StatusType.ERROR_FIND_ROUTE_API, StatusCode.ERROR_FIND_ROUTE_API, reasons.firstOrNull()?.message?: "Unable to find route due unexpected error")
+                    eventHelper?.sendErrorToReact(this@AndroidMapboxView, StatusType.ERROR_FIND_ROUTE_API, StatusCode.ERROR_FIND_ROUTE_API, reasons.firstOrNull()?.message?: "Unable to find route due unexpected error")
                 }
 
                 override fun onCanceled(routeOptions: RouteOptions, routerOrigin: RouterOrigin) {

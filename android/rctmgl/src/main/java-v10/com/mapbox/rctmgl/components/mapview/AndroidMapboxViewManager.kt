@@ -11,15 +11,15 @@ import com.mapbox.rctmgl.modules.RCTMGLModule
 import com.mapbox.rctmgl.utils.extensions.toCoordinate
 import okhttp3.internal.toImmutableMap
 
-class RCTAndroidMapViewManager(val context: ReactApplicationContext?) :
+class AndroidMapboxViewManager(val context: ReactApplicationContext?) :
     RCTMGLMapViewManager(context) {
 
     override fun getName(): String {
         return REACT_CLASS
     }
 
-    override fun createViewInstance(themedReactContext: ThemedReactContext): RCTAndroidMapView {
-        return RCTAndroidMapView(themedReactContext, this, RCTMGLModule.getAccessToken(this.context))
+    override fun createViewInstance(themedReactContext: ThemedReactContext): AndroidMapboxView {
+        return AndroidMapboxView(themedReactContext, this, RCTMGLModule.getAccessToken(this.context))
     }
 
     override fun customEvents(): Map<String, String> {
@@ -58,28 +58,28 @@ class RCTAndroidMapViewManager(val context: ReactApplicationContext?) :
         super.receiveCommand(mapView, commandID, args)
         when (commandID) {
             METHOD_FIND_ROUTE -> {
-                (mapView as RCTAndroidMapView).findRoute(
+                (mapView as AndroidMapboxView).findRoute(
                     args?.getArray(1)?.toCoordinate(),
                     args?.getArray(2)?.toCoordinate()
                 )
             }
             METHOD_STOP_NAVIGATION -> {
-                (mapView as RCTAndroidMapView).stopRoute(args?.getBoolean(1)?: false)
+                (mapView as AndroidMapboxView).stopRoute(args?.getBoolean(1)?: false)
             }
             METHOD_START_NAVIGATION -> {
-                (mapView as RCTAndroidMapView).startRoute(args?.getBoolean(1)?: false)
+                (mapView as AndroidMapboxView).startRoute(args?.getBoolean(1)?: false)
             }
             METHOD_RESET_ROUTE -> {
-                (mapView as RCTAndroidMapView).clearRoute()
+                (mapView as AndroidMapboxView).clearRoute()
             }
             METHOD_RECENTER -> {
-                (mapView as RCTAndroidMapView).recenter()
+                (mapView as AndroidMapboxView).recenter()
             }
         }
     }
 
     @ReactProp(name = "origin")
-    fun setOrigin(view: RCTAndroidMapView, sources: ReadableArray?) {
+    fun setOrigin(view: AndroidMapboxView, sources: ReadableArray?) {
         if (sources == null) {
             view.setOrigin(null)
             return
@@ -88,7 +88,7 @@ class RCTAndroidMapViewManager(val context: ReactApplicationContext?) :
     }
 
     @ReactProp(name = "destination")
-    fun setDestination(view: RCTAndroidMapView, sources: ReadableArray?) {
+    fun setDestination(view: AndroidMapboxView, sources: ReadableArray?) {
         if (sources == null) {
             view.setDestination(null)
             return

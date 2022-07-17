@@ -34,7 +34,7 @@ export const NATIVE_MODULE_NAME = isAndroid()
   : 'RCTMGLNavigationMapView'; //'RCTMGLMapView';
 
 // export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';
-export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'AndroidMapViewManager';
+export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'AndroidMapboxViewManager';
 
 const styles = StyleSheet.create({
   matchParent: { flex: 1 },
