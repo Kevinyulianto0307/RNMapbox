@@ -168,6 +168,7 @@ open class RCTMGLMapViewManager(context: ReactApplicationContext?) :
             .put(EventKeys.MAP_ON_LOCATION_CHANGE, "onLocationChange")
             .put(EventKeys.MAP_USER_TRACKING_MODE_CHANGE, "onUserTrackingModeChange")
             .put(EventKeys.MAP_ANDROID_CALLBACK, "onAndroidCallback")
+            .put(EventKeys.ON_MAP_ERROR, "onMapError")
             .build()
     }
 
@@ -185,6 +186,12 @@ open class RCTMGLMapViewManager(context: ReactApplicationContext?) :
             .put("showAttribution", METHOD_SHOW_ATTRIBUTION)
             .put("setSourceVisibility", METHOD_SET_SOURCE_VISIBILITY)
             .put("queryTerrainElevation", METHOD_QUERY_TERRAIN_ELEVATION)
+            // unable to find the reason why must be put in the parent
+            .put("findRoute", AndroidMapboxViewManager.METHOD_FIND_ROUTE)
+            .put("startRoute", AndroidMapboxViewManager.METHOD_START_NAVIGATION)
+            .put("stopRoute", AndroidMapboxViewManager.METHOD_STOP_NAVIGATION)
+            .put("resetRoute", AndroidMapboxViewManager.METHOD_RESET_ROUTE)
+            .put("recenter", AndroidMapboxViewManager.METHOD_RECENTER)
             .build()
     }
 

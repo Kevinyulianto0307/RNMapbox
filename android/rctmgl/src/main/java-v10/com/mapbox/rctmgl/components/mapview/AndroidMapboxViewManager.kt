@@ -6,7 +6,7 @@ import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.mapbox.geojson.Point
-import com.mapbox.rctmgl.events.constants.EventKeys
+//import com.mapbox.rctmgl.events.constants.EventKeys
 import com.mapbox.rctmgl.modules.RCTMGLModule
 import com.mapbox.rctmgl.utils.extensions.toCoordinate
 import okhttp3.internal.toImmutableMap
@@ -22,37 +22,37 @@ class AndroidMapboxViewManager(val context: ReactApplicationContext?) :
         return AndroidMapboxView(themedReactContext, this, RCTMGLModule.getAccessToken(this.context))
     }
 
-    override fun customEvents(): Map<String, String> {
-        val parentCommandsMap = super.customEvents()!!
-        val map =  MapBuilder.builder<String, String>()
-            .put(EventKeys.ON_MAP_ERROR, "onMapError")
+//    override fun customEvents(): Map<String, String> {
+//        val parentCommandsMap = super.customEvents()!!
+//        val map =  MapBuilder.builder<String, String>()
+//            .put(EventKeys.ON_MAP_ERROR, "onMapError")
 //            .put(EventKeys.ON_FIND_ROUTE_SUCCESS, "onFindRouteSuccess")
 //            .put(EventKeys.ON_NAVIGATION_STARTED, "onNavigationStarted")
 //            .put(EventKeys.ON_ROUTE_OFF, "onRouteOff")
 //            .put(EventKeys.ON_ARRIVAL, "onArrival")
-            .build()
-        val newMap = mutableMapOf<String, String>()
-        newMap.putAll(parentCommandsMap)
-        newMap.putAll(map)
+//            .build()
+//        val newMap = mutableMapOf<String, String>()
+//        newMap.putAll(parentCommandsMap)
+//        newMap.putAll(map)
+//
+//        return newMap.toImmutableMap()
+//    }
 
-        return newMap.toImmutableMap()
-    }
-
-    override fun getCommandsMap(): Map<String, Int> {
-        val parentCommandsMap = super.getCommandsMap()!!
-        val map =  MapBuilder.builder<String, Int>()
-            .put("findRoute", METHOD_FIND_ROUTE)
-            .put("startRoute", METHOD_START_NAVIGATION)
-            .put("stopRoute", METHOD_STOP_NAVIGATION)
-            .put("resetRoute", METHOD_RESET_ROUTE)
-            .put("recenter", METHOD_RECENTER)
-            .build()
-        val newMap = mutableMapOf<String, Int>()
-        newMap.putAll(parentCommandsMap)
-        newMap.putAll(map)
-        return newMap.toImmutableMap()
-    }
-
+//    override fun getCommandsMap(): Map<String, Int> {
+//        val parentCommandsMap = super.getCommandsMap()!!
+//        val map =  MapBuilder.builder<String, Int>()
+//            .put("findRoute", METHOD_FIND_ROUTE)
+//            .put("startRoute", METHOD_START_NAVIGATION)
+//            .put("stopRoute", METHOD_STOP_NAVIGATION)
+//            .put("resetRoute", METHOD_RESET_ROUTE)
+//            .put("recenter", METHOD_RECENTER)
+//            .build()
+//        val newMap = mutableMapOf<String, Int>()
+//        newMap.putAll(parentCommandsMap)
+//        newMap.putAll(map)
+//        return newMap.toImmutableMap()
+//    }
+//
 
     override fun receiveCommand(mapView: RCTMGLMapView, commandID: Int, args: ReadableArray?) {
         super.receiveCommand(mapView, commandID, args)
