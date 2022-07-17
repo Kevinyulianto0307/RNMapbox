@@ -13,7 +13,7 @@ class EventHelper(val manager: RCTMGLMapViewManager) {
         errorPayload.putInt("code", errorCode)
         errorPayload.putString("statusText", errorType)
         errorPayload.putString("message", errorMessage)
-        val event = ErrorEvent(view, EventTypes.ON_ERROR, errorPayload)
+        val event = ErrorEvent(view, EventTypes.ON_MAP_ERROR, errorPayload)
         this.manager.handleEvent(event)
     }
 }

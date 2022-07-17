@@ -157,9 +157,6 @@ class MGLMapboxSearchController(private val mReactContext: ReactApplicationConte
         mSearchEngine = MapboxSearchSdk.getSearchEngine()
         return true
     }
-    
-    init {
-    }
 
     companion object {
         const val REACT_CLASS = "MGLMapboxSearchController"

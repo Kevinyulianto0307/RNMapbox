@@ -25,11 +25,11 @@ class RCTAndroidMapViewManager(val context: ReactApplicationContext?) :
     override fun customEvents(): Map<String, String> {
         val parentCommandsMap = super.customEvents()!!
         val map =  MapBuilder.builder<String, String>()
-            .put(EventKeys.ON_ERROR, "onError")
-            .put(EventKeys.ON_FIND_ROUTE_SUCCESS, "onFindRouteSuccess")
-            .put(EventKeys.ON_NAVIGATION_STARTED, "onNavigationStarted")
-            .put(EventKeys.ON_ROUTE_OFF, "onRouteOff")
-            .put(EventKeys.ON_ARRIVAL, "onArrival")
+            .put(EventKeys.ON_MAP_ERROR, "onMapError")
+//            .put(EventKeys.ON_FIND_ROUTE_SUCCESS, "onFindRouteSuccess")
+//            .put(EventKeys.ON_NAVIGATION_STARTED, "onNavigationStarted")
+//            .put(EventKeys.ON_ROUTE_OFF, "onRouteOff")
+//            .put(EventKeys.ON_ARRIVAL, "onArrival")
             .build()
         val newMap = mutableMapOf<String, String>()
         newMap.putAll(parentCommandsMap)
@@ -98,8 +98,8 @@ class RCTAndroidMapViewManager(val context: ReactApplicationContext?) :
 
 
     companion object {
-        const val REACT_CLASS = "RCTAndroidMapView"
-        const val LOG_TAG = "RCTAndroidMapView"
+        const val REACT_CLASS = "AndroidMapboxViewManager"
+        const val LOG_TAG = "AndroidMapboxViewManager"
 
         const val METHOD_FIND_ROUTE = 14
         const val METHOD_STOP_NAVIGATION = 15

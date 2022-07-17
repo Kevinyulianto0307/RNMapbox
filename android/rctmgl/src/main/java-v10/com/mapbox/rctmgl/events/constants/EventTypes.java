@@ -54,7 +54,7 @@ public class EventTypes {
     public static final String ON_LOCATION_MATCHER_CHANGE = "locationmatcherchange";
 
     // error event types
-    public static final String ON_ERROR = "onerror";
+    public static final String ON_MAP_ERROR = "onMapError";
 
     // image missing event type
     public static final String IMAGES_MISSING = "imagesmissing";

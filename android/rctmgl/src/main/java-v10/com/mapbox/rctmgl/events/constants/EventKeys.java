@@ -40,7 +40,7 @@ public class EventKeys {
     public static final String ON_ARRIVAL = ns("map.arrival");
 
     // error events
-    public static final String ON_ERROR = ns("map.error");
+    public static final String ON_MAP_ERROR = ns("map.maperror");
 
     private static String ns(String name) {
         return String.format("%s.%s", NAMESPACE, name);

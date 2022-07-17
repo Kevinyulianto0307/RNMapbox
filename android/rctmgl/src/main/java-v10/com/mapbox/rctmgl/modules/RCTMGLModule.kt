@@ -68,7 +68,7 @@ class RCTMGLModule(private val mReactContext: ReactApplicationContext) : ReactCo
         eventTypes["OnArrival"] = EventTypes.ON_ARRIVAL
         eventTypes["OnRouteOff"] = EventTypes.ON_ROUTE_OFF
         eventTypes["OnNavigationStarted"] = EventTypes.ON_NAVIGATION_STARTED
-        eventTypes["OnError"] = EventTypes.ON_ERROR
+        eventTypes["OnFindRouteSuccess"] = EventTypes.ON_FIND_ROUTE_SUCCESS
 
         // style source constants
         val styleSourceConsts: MutableMap<String, String> = HashMap()

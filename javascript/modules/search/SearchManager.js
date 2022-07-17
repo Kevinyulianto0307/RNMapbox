@@ -1,5 +1,6 @@
-import { isAndroid } from 'javascript/utils';
 import { NativeModules } from 'react-native';
+
+import { isAndroid } from '../../utils';
 
 const SearchController = NativeModules.MGLMapboxSearchController;
 
@@ -16,7 +17,7 @@ class SearchManager {
   }
 
   stopSearch(queryText) {
-    if (isAndroid) {
+    if (isAndroid()) {
       SearchController.stopSearch();
     }
   }

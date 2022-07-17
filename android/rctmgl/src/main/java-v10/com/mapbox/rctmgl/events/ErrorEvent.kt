@@ -11,7 +11,7 @@ class ErrorEvent @JvmOverloads constructor(
     private val mPayload: WritableMap = Arguments.createMap()
 ) : AbstractEvent(view, eventType) {
     override fun getKey(): String {
-        return EventKeys.ON_ERROR
+        return EventKeys.ON_MAP_ERROR
     }
 
     override fun getPayload(): WritableMap {

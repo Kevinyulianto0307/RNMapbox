@@ -3360,6 +3360,34 @@
         "type": "number",
         "default": "500",
         "description": "The emitted frequency of regiondidchange events"
+      },
+      {
+        "name": "onNavigationStarted",
+        "required": false,
+        "type": "func",
+        "default": "none",
+        "description": "FIX ME NO DESCRIPTION"
+      },
+      {
+        "name": "onRouteProgressChange",
+        "required": false,
+        "type": "func",
+        "default": "none",
+        "description": "FIX ME NO DESCRIPTION"
+      },
+      {
+        "name": "onRouteOff",
+        "required": false,
+        "type": "func",
+        "default": "none",
+        "description": "FIX ME NO DESCRIPTION"
+      },
+      {
+        "name": "onMapError",
+        "required": false,
+        "type": "func",
+        "default": "none",
+        "description": "FIX ME NO DESCRIPTION"
       }
     ],
     "composes": [

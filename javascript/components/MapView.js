@@ -34,7 +34,7 @@ export const NATIVE_MODULE_NAME = isAndroid()
   : 'RCTMGLNavigationMapView'; //'RCTMGLMapView';
 
 // export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';
-export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTAndroidMapView';
+export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'AndroidMapViewManager';
 
 const styles = StyleSheet.create({
   matchParent: { flex: 1 },
@@ -296,6 +296,14 @@ class MapView extends NativeBridgeComponent(React.Component) {
      * The emitted frequency of regiondidchange events
      */
     regionDidChangeDebounceTime: PropTypes.number,
+
+    onNavigationStarted: PropTypes.func,
+
+    onRouteProgressChange: PropTypes.func,
+
+    onRouteOff: PropTypes.func,
+
+    onMapError: PropTypes.func,
   };
 
   static defaultProps = {
@@ -390,6 +398,11 @@ class MapView extends NativeBridgeComponent(React.Component) {
       addIfHasHandler('DidFinishRenderingMapFully');
       addIfHasHandler('DidFinishLoadingStyle');
       addIfHasHandler('OnFindRouteSuccess');
+      addIfHasHandler('OnNavigationStarted');
+      addIfHasHandler('OnLocationMatcherChange');
+      addIfHasHandler('OnRouteProgressChange');
+      addIfHasHandler('OnArrival');
+      addIfHasHandler('OnRouteOff');
 
       if (addIfHasHandler('MapIdle')) {
         if (props.onRegionDidChange) {

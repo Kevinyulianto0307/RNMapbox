@@ -47,6 +47,10 @@
 | onDidFinishLoadingStyle | `func` | `none` | `false` | This event is triggered when a style has finished loading. |
 | regionWillChangeDebounceTime | `number` | `10` | `false` | The emitted frequency of regionwillchange events |
 | regionDidChangeDebounceTime | `number` | `500` | `false` | The emitted frequency of regiondidchange events |
+| onNavigationStarted | `func` | `none` | `false` | FIX ME NO DESCRIPTION |
+| onRouteProgressChange | `func` | `none` | `false` | FIX ME NO DESCRIPTION |
+| onRouteOff | `func` | `none` | `false` | FIX ME NO DESCRIPTION |
+| onMapError | `func` | `none` | `false` | FIX ME NO DESCRIPTION |
 
 ### methods
 #### getPointInView(coordinate)
