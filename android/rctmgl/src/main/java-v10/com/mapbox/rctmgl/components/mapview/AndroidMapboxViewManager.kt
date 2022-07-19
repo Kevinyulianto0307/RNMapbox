@@ -6,7 +6,7 @@ import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.mapbox.geojson.Point
-//import com.mapbox.rctmgl.events.constants.EventKeys
+import com.mapbox.rctmgl.events.constants.EventKeys
 import com.mapbox.rctmgl.modules.RCTMGLModule
 import com.mapbox.rctmgl.utils.extensions.toCoordinate
 import okhttp3.internal.toImmutableMap
