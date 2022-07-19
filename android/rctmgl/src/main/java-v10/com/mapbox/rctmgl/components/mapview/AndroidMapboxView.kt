@@ -17,6 +17,7 @@ import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
+import com.mapbox.navigation.base.formatter.DistanceFormatterOptions
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.route.*
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
@@ -50,6 +51,7 @@ import com.mapbox.rctmgl.events.constants.EventTypes
 import com.mapbox.rctmgl.events.constants.StatusCode
 import com.mapbox.rctmgl.events.constants.StatusType
 import com.mapbox.rctmgl.utils.EventHelper
+import java.util.*
 
 @SuppressWarnings("MissingPermission")
 class AndroidMapboxView(
@@ -149,31 +151,31 @@ class AndroidMapboxView(
     private val locationObserver = object : LocationObserver {
 
         override fun onNewRawLocation(rawLocation: Location) {
-            Log.d("locationObserver", "onNewRawLocation" + rawLocation.longitude + ' ' + rawLocation.longitude)
-            origin = rawLocation.toPoint()
-            navigationLocationProvider.changePosition(
-                location = rawLocation,
-            )
-            viewportDataSource.onLocationChanged(rawLocation)
-            if (isRouting) {
-                viewportDataSource.evaluate()
-            }
-
-            val payload = Arguments.createMap()
-            payload.putDouble("longitude", rawLocation.longitude)
-            payload.putDouble("latitude", rawLocation.latitude)
-            payload.putDouble("altitude", rawLocation.altitude)
-            payload.putDouble("accuracy", rawLocation.accuracy.toDouble())
-            payload.putDouble("bearing", rawLocation.bearing.toDouble())
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                payload.putDouble("bearingAccuracyDegrees", rawLocation.bearingAccuracyDegrees.toDouble())
-            } else {
-                payload.putNull("bearingAccuracyDegrees")
-            }
-            payload.putDouble("speed", rawLocation.speed.toDouble())
-            payload.putDouble("time", rawLocation.time.toDouble())
-            val onLocationMatcherChangeEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
-            mManager.handleEvent(onLocationMatcherChangeEvent)
+//            Log.d("locationObserver", "onNewRawLocation" + rawLocation.longitude + ' ' + rawLocation.longitude)
+//            origin = rawLocation.toPoint()
+//            navigationLocationProvider.changePosition(
+//                location = rawLocation,
+//            )
+//            viewportDataSource.onLocationChanged(rawLocation)
+//            if (isRouting) {
+//                viewportDataSource.evaluate()
+//            }
+//
+//            val payload = Arguments.createMap()
+//            payload.putDouble("longitude", rawLocation.longitude)
+//            payload.putDouble("latitude", rawLocation.latitude)
+//            payload.putDouble("altitude", rawLocation.altitude)
+//            payload.putDouble("accuracy", rawLocation.accuracy.toDouble())
+//            payload.putDouble("bearing", rawLocation.bearing.toDouble())
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                payload.putDouble("bearingAccuracyDegrees", rawLocation.bearingAccuracyDegrees.toDouble())
+//            } else {
+//                payload.putNull("bearingAccuracyDegrees")
+//            }
+//            payload.putDouble("speed", rawLocation.speed.toDouble())
+//            payload.putDouble("time", rawLocation.time.toDouble())
+//            val onLocationMatcherChangeEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_LOCATION_MATCHER_CHANGE, payload)
+//            mManager.handleEvent(onLocationMatcherChangeEvent)
         }
 
         /**
@@ -416,6 +418,10 @@ class AndroidMapboxView(
         if (mMapboxNavigation != null) {
             mMapboxNavigation!!.onDestroy()
         }
+
+        val currentLocale: Locale = resources.configuration.locales.get(0)
+        val formatOptions =
+            DistanceFormatterOptions.Builder(context.applicationContext).locale(currentLocale).build()
         mMapboxNavigation = when {
             MapboxNavigationProvider.isCreated() -> {
                 MapboxNavigationProvider.retrieve()
@@ -424,6 +430,7 @@ class AndroidMapboxView(
                 MapboxNavigationProvider.create(
                     NavigationOptions.Builder(context)
                         .accessToken(accessToken)
+                        .distanceFormatterOptions(formatOptions)
                         .locationEngine(replayLocationEngine)
                         .build()
                 )
@@ -431,6 +438,7 @@ class AndroidMapboxView(
             else -> {
                 MapboxNavigationProvider.create(
                     NavigationOptions.Builder(context)
+                        .distanceFormatterOptions(formatOptions)
                         .accessToken(accessToken)
                         .build()
                 )
@@ -685,7 +693,6 @@ class AndroidMapboxView(
         val onNavigationStartedEvent = MapChangeEvent(this, EventTypes.ON_NAVIGATION_STARTED)
 //        val navigationStartedEvent = NavigationEvent(this, NavigationEventTypes.ON_NAVIGATION_STARTED)
         mManager.handleEvent(onNavigationStartedEvent)
-
 
         mMapboxNavigation!!.startTripSession(true) // start listening session
         navigationCamera.requestNavigationCameraToFollowing()
