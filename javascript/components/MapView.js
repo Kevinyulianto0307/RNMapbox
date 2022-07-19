@@ -30,7 +30,7 @@ if (MapboxGL == null) {
 }
 
 export const NATIVE_MODULE_NAME = isAndroid()
-  ? 'RCTMGLMapView'
+  ? 'AndroidMapboxViewManager'
   : 'RCTMGLNavigationMapView'; //'RCTMGLMapView';
 
 // export const ANDROID_TEXTURE_NATIVE_MODULE_NAME = 'RCTMGLAndroidTextureMapView';

@@ -687,8 +687,8 @@ class AndroidMapboxView(
         mManager.handleEvent(onNavigationStartedEvent)
 
 
-        navigationCamera.requestNavigationCameraToFollowing()
         mMapboxNavigation!!.startTripSession(true) // start listening session
+        navigationCamera.requestNavigationCameraToFollowing()
 
         if (shouldSimulate) {
             //  run simulation
