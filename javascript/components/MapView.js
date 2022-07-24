@@ -646,13 +646,15 @@ class MapView extends NativeBridgeComponent(React.Component) {
 
   /**
    * start route
+   * @param {number[]} origin
    * @param {boolean} shouldSimulate
    * @example
    * await this._map.startRoute(shouldSimulate);
    *
    */
-  async startRoute(shouldSimulate) {
+  async startRoute(origin, shouldSimulate) {
     await this._runNativeCommand('startRoute', this._nativeRef, [
+      origin,
       shouldSimulate,
     ]);
   }

@@ -2944,11 +2944,24 @@
       },
       {
         "name": "startRoute",
-        "docblock": "start route\n@param {boolean} shouldSimulate\n@example\nawait this._map.startRoute(shouldSimulate);",
+        "docblock": "start route\n@param {number[]} origin\n@param {boolean} shouldSimulate\n@example\nawait this._map.startRoute(shouldSimulate);",
         "modifiers": [
           "async"
         ],
         "params": [
+          {
+            "name": "origin",
+            "description": null,
+            "type": {
+              "name": "Array",
+              "elements": [
+                {
+                  "name": "number"
+                }
+              ]
+            },
+            "optional": false
+          },
           {
             "name": "shouldSimulate",
             "description": null,

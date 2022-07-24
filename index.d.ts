@@ -224,7 +224,10 @@ declare namespace MapboxGL {
       origin?: number[] | undefined,
       destination?: number[] | undefined,
     ): Promise<void>;
-    startRoute(shouldSimulate: boolean): Promise<void>;
+    startRoute(
+      origin: number[] | undefined,
+      shouldSimulate: boolean,
+    ): Promise<void>;
     stopRoute(shouldSimulate: boolean): Promise<void>;
     resetRoute(): Promise<void>;
     recenter(): Promise<void>;

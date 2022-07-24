@@ -244,13 +244,14 @@ const findRoute = await this._map.findRoute(origin, destination);
 ```
 
 
-#### startRoute(shouldSimulate)
+#### startRoute(origin, shouldSimulate)
 
 start route
 
 ##### arguments
 | Name | Type | Required | Description  |
 | ---- | :--: | :------: | :----------: |
+| `origin` | `Array` | `Yes` | null |
 | `shouldSimulate` | `boolean` | `Yes` | null |
 
 
