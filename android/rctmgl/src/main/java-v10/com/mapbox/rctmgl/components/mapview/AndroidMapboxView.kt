@@ -410,8 +410,8 @@ class AndroidMapboxView(
 
     override fun onStop() {
 //        unregisterObserver()
-//        val reactContext = context as ReactContext
-//        reactContext.removeLifecycleEventListener(mLifeCycleListener)
+        val reactContext = context as ReactContext
+        reactContext.removeLifecycleEventListener(mLifeCycleListener)
         isRouting = false
 //        cleanUp()
         super.onStop()
@@ -429,16 +429,19 @@ class AndroidMapboxView(
             mMapboxNavigation?.setNavigationRoutes(searchedRoutes)
             mMapboxNavigation?.stopTripSession()
         }
-        routeLineView.cancel()
-        routeLineApi.cancel()
-        maneuverApi.cancel()
-        mMapboxReplayer!!.stop()
+        routeLineView?.cancel()
+        routeLineApi?.cancel()
+        maneuverApi?.cancel()
+        mMapboxReplayer?.stop()
         MapboxNavigationProvider.destroy()
     }
 
     private fun setMapboxNavigation(shouldSimulate: Boolean) {
         if (mMapboxNavigation != null) {
             mMapboxNavigation!!.onDestroy()
+            replayProgressObserver = null
+            mMapboxReplayer = null
+            replayLocationEngine = null
         }
 
         val currentLocale = resources.configuration.locales.get(0)
@@ -525,22 +528,20 @@ class AndroidMapboxView(
         val reactContext = context as ReactContext
         mLifeCycleListener = object : LifecycleEventListener {
             override fun onHostResume() {
-//                onResume()
                 if (isRouting) {
                     registerObserver()
                 }
             }
 
             override fun onHostPause() {
-//                onPause()
             }
 
             override fun onHostDestroy() {
 //                onDestroy()
-//                dispose()
+                dispose()
             }
         }
-//        reactContext.addLifecycleEventListener(mLifeCycleListener)
+        reactContext.addLifecycleEventListener(mLifeCycleListener)
     }
 
     private fun setRouteNavigation(routes: List<NavigationRoute>) {
@@ -572,7 +573,9 @@ class AndroidMapboxView(
         mMapboxNavigation?.registerRouteProgressObserver(routeProgressObserver)
         mMapboxNavigation?.registerLocationObserver(locationObserver)
         mMapboxNavigation?.registerArrivalObserver(arrivalObserver)
-        mMapboxNavigation?.registerRouteProgressObserver(replayProgressObserver!!)
+        if (replayProgressObserver != null) {
+            mMapboxNavigation?.registerRouteProgressObserver(replayProgressObserver!!)
+        }
 //        mMapboxNavigation?.registerVoiceInstructionsObserver(voiceInstructionsObserver)
         mMapboxNavigation?.registerOffRouteObserver(offRouteObserver)
     }
@@ -585,7 +588,9 @@ class AndroidMapboxView(
         mMapboxNavigation?.unregisterArrivalObserver(arrivalObserver)
         mMapboxNavigation?.unregisterOffRouteObserver(offRouteObserver)
 //        mMapboxNavigation?.unregisterVoiceInstructionsObserver(voiceInstructionsObserver)
-        mMapboxNavigation?.unregisterRouteProgressObserver(replayProgressObserver!!)
+        if (replayProgressObserver != null) {
+            mMapboxNavigation?.unregisterRouteProgressObserver(replayProgressObserver!!)
+        }
     }
 
     private fun stopNavigation(shouldSimulateRoute: Boolean) {
@@ -593,6 +598,7 @@ class AndroidMapboxView(
             mMapboxReplayer!!.stop()
         }
         mMapboxNavigation?.stopTripSession()
+
     }
 
     override fun onDetachedFromWindow() {
@@ -620,7 +626,7 @@ class AndroidMapboxView(
             .applyDefaultNavigationOptions()
             .applyLanguageAndVoiceUnitOptions(context)
             .coordinatesList(listOf(origin, destination))
-            .profile(DirectionsCriteria.PROFILE_DRIVING)
+            .profile(DirectionsCriteria.PROFILE_DRIVING_TRAFFIC)
             .steps(true)
 
 //        if (originLocation is Location) {
