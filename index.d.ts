@@ -428,8 +428,16 @@ declare namespace MapboxGL {
   }
 
   class SearchManager {
-    static forwardSearch(queryText: string): Promise<any>;
+    static forwardSearch(
+      queryText: string,
+      suggestionID?: string | undefined,
+      origin?: Array<number> | undefined,
+    ): Promise<any>;
     static stopSearch(): Promise<any>;
+    static retrieveSuggestions(
+      queryText: string,
+      origin?: Array<number> | undefined,
+    ): Promise<any>;
   }
 
   class SnapshotManager {

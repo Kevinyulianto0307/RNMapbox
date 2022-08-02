@@ -6750,6 +6750,13 @@
     "styles": [],
     "methods": []
   },
+  "retrieveSuggestions": {
+    "name": "retrieveSuggestions",
+    "description": "",
+    "props": [],
+    "styles": [],
+    "methods": []
+  },
   "snapshotManager": {
     "name": "snapshotManager",
     "description": "The snapshotManager generates static raster images of the map.\nEach snapshot image depicts a portion of a map defined by an SnapshotOptions object you provide.\nThe snapshotter generates the snapshot asynchronous.",

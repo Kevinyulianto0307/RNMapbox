@@ -9,14 +9,29 @@ class SearchManager {
 
   /**
    * @param {string} queryText
+   * @param {string | undefined} suggestionID
+   * @param {Array<number> | undefined} origin
    * @return {any}
    */
-  async forwardSearch(queryText) {
-    const result = await SearchController.forwardSearch(queryText);
+  async forwardSearch(queryText, suggestionID, origin) {
+    const result = await SearchController.forwardSearch(
+      queryText,
+      suggestionID,
+      origin,
+    );
     return result;
   }
 
-  stopSearch(queryText) {
+  /**
+   * @param {string} queryText
+   * @param {Array<number>} origin
+   * @return {Promise<any>}
+   */
+  async retrieveSuggestions(queryText, origin) {
+    return SearchController.retrieveSuggestions(queryText, origin);
+  }
+
+  stopSearch() {
     if (isAndroid()) {
       SearchController.stopSearch();
     }
