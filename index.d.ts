@@ -231,6 +231,7 @@ declare namespace MapboxGL {
     stopRoute(shouldSimulate: boolean): Promise<void>;
     resetRoute(): Promise<void>;
     recenter(): Promise<void>;
+    changeCameraBearingMode(cameraBearingState: string): Promise<void>;
     queryRenderedFeaturesAtPoint(
       coordinate: GeoJSON.Position,
       filter?: Expression,

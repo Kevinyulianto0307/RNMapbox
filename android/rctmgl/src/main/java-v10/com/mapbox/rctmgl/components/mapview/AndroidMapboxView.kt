@@ -17,6 +17,7 @@ import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.NorthOrientation
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.compass.compass
@@ -256,6 +257,7 @@ class AndroidMapboxView(
             this@AndroidMapboxView.origin = enhancedLocation.toPoint()
             Log.d("locationObserver", "onNewRawLocation" + enhancedLocation.longitude + ' ' + enhancedLocation.longitude)
             // update location puck's position on the map
+
             navigationLocationProvider.changePosition(
                 location = enhancedLocation,
                 keyPoints = locationMatcherResult.keyPoints,
@@ -499,16 +501,17 @@ class AndroidMapboxView(
 
         val customColorResources = RouteLineColorResources.Builder()
             .routeDefaultColor(Color.parseColor("#FF0000"))
-            .inActiveRouteLegsColor(Color.parseColor("#FF0000"))
-//            .routeLineTraveledCasingColor(Color.parseColor("#FF0000"))
-            .routeClosureColor(Color.parseColor("#FF0000"))
-            .routeUnknownCongestionColor(Color.parseColor("#FF0000"))
-            .routeLowCongestionColor(Color.parseColor("#FF0000"))
-            .routeSevereCongestionColor(Color.parseColor("#FF0000"))
-            .restrictedRoadColor(Color.parseColor("#FF0000"))
-            .routeCasingColor(Color.parseColor("#FF0000"))
-            .alternativeRouteRestrictedRoadColor(Color.parseColor("#FF0000"))
             .build()
+//            .inActiveRouteLegsColor(Color.parseColor("#FF0000"))
+//            .routeLineTraveledCasingColor(Color.parseColor("#FF0000"))
+//            .routeClosureColor(Color.parseColor("#FF0000"))
+//            .routeUnknownCongestionColor(Color.parseColor("#FF0000"))
+//            .routeLowCongestionColor(Color.parseColor("#FF0000"))
+//            .routeSevereCongestionColor(Color.parseColor("#FF0000"))
+//            .restrictedRoadColor(Color.parseColor("#FF0000"))
+//            .routeCasingColor(Color.parseColor("#FF0000"))
+//            .alternativeRouteRestrictedRoadColor(Color.parseColor("#FF0000"))
+//            .build()
 
         val routeLineResources = RouteLineResources.Builder()
             .routeLineColorResources(customColorResources)
@@ -677,7 +680,6 @@ class AndroidMapboxView(
 
                 override fun onCanceled(routeOptions: RouteOptions, routerOrigin: RouterOrigin) {
                     searchedRoutes = emptyList()
-//                    eventHelper?.sendErrorToReact(this@AndroidMapboxView, StatusType.ERROR_FIND_ROUTE_NO_ROUTES, StatusCode.ERROR_FIND_ROUTE_NO_ROUTES, "Unable to find route from origin to destination")
                 }
             }
         )
@@ -823,6 +825,15 @@ class AndroidMapboxView(
         }
     }
 
+    /** REACT_METHOD **/
+    fun changeCameraBearingMode(mode: String) {
+        if (mode == "North") {
+            viewportDataSource.followingBearingPropertyOverride(0.0)
+        } else {
+            viewportDataSource.followingBearingPropertyOverride(null)
+        }
+    }
+
     fun setOrigin(origin:Point?) {
         this.origin = origin
     }
@@ -848,6 +859,7 @@ class AndroidMapboxView(
         )
         viewportDataSource.followingPitchPropertyOverride(45.0)
         viewportDataSource.followingZoomPropertyOverride(17.0)
+
 
         navigationCamera = NavigationCamera(
             getMapboxMap(),

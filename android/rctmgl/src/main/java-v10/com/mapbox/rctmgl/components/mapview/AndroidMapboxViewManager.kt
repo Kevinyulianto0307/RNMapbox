@@ -46,6 +46,7 @@ class AndroidMapboxViewManager(val context: ReactApplicationContext?) :
             .put("stopRoute", METHOD_STOP_NAVIGATION)
             .put("resetRoute", METHOD_RESET_ROUTE)
             .put("recenter", METHOD_RECENTER)
+            .put("changeCameraBearingMode", METHOD_CHANGE_BEARING_MODE)
             .build()
         val newMap = mutableMapOf<String, Int>()
         newMap.putAll(parentCommandsMap)
@@ -73,6 +74,9 @@ class AndroidMapboxViewManager(val context: ReactApplicationContext?) :
             }
             METHOD_RECENTER -> {
                 (mapView as AndroidMapboxView).recenter()
+            }
+            METHOD_CHANGE_BEARING_MODE -> {
+                (mapView as AndroidMapboxView).changeCameraBearingMode(args!!.getString(1))
             }
         }
     }
@@ -105,5 +109,6 @@ class AndroidMapboxViewManager(val context: ReactApplicationContext?) :
         const val METHOD_START_NAVIGATION = 16
         const val METHOD_RESET_ROUTE = 17
         const val METHOD_RECENTER = 18
+        const val METHOD_CHANGE_BEARING_MODE = 19
     }
 }

@@ -689,6 +689,18 @@ class MapView extends NativeBridgeComponent(React.Component) {
     await this._runNativeCommand('resetRoute', this._nativeRef);
   }
 
+  /**
+   * change bearing camera to keep on north or bearing
+   * @param {'North' | 'Bearing'} cameraBearingMode
+   * @example
+   * await this._map.changeCameraBearingMode(cameraBearingMode);
+   */
+  async changeCameraBearingMode(cameraBearingMode) {
+    await this._runNativeCommand('changeCameraBearingMode', this._nativeRef, [
+      cameraBearingMode,
+    ]);
+  }
+
   _createStopConfig(config = {}) {
     const stopConfig = {
       mode: isNumber(config.mode) ? config.mode : MapboxGL.CameraModes.Ease,

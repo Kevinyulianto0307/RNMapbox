@@ -303,4 +303,20 @@ reset route line view
 
 
 
+#### changeCameraBearingMode(cameraBearingMode)
+
+change bearing camera to keep on north or bearing
+
+##### arguments
+| Name | Type | Required | Description  |
+| ---- | :--: | :------: | :----------: |
+| `cameraBearingMode` | `union` | `Yes` | null |
+
+
+
+```javascript
+await this._map.changeCameraBearingMode(cameraBearingMode);
+```
+
+
 

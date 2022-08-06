@@ -3027,6 +3027,32 @@
         },
         "description": "reset route line view",
         "examples": []
+      },
+      {
+        "name": "changeCameraBearingMode",
+        "docblock": "change bearing camera to keep on north or bearing\n@param {'North' | 'Bearing'} cameraBearingMode\n@example\nawait this._map.changeCameraBearingMode(cameraBearingMode);",
+        "modifiers": [
+          "async"
+        ],
+        "params": [
+          {
+            "name": "cameraBearingMode",
+            "description": null,
+            "type": {
+              "name": "union",
+              "elements": [
+                null,
+                null
+              ]
+            },
+            "optional": false
+          }
+        ],
+        "returns": null,
+        "description": "change bearing camera to keep on north or bearing",
+        "examples": [
+          "\nawait this._map.changeCameraBearingMode(cameraBearingMode);"
+        ]
       }
     ],
     "props": [
