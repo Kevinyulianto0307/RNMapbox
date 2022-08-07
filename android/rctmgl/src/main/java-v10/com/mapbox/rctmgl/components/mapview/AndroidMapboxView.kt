@@ -2,6 +2,7 @@ package com.mapbox.rctmgl.components.mapview
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.PointF
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
@@ -10,19 +11,23 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactContext
 import com.mapbox.android.gestures.MoveGestureDetector
+import com.mapbox.android.gestures.Utils
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
+import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.NorthOrientation
+import com.mapbox.maps.extension.style.layers.properties.generated.Visibility
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.compass.compass
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
@@ -33,6 +38,7 @@ import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.route.*
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
 import com.mapbox.navigation.base.trip.model.RouteProgress
+import com.mapbox.navigation.base.utils.DecodeUtils.completeGeometryToPoints
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.MapboxNavigationProvider
 import com.mapbox.navigation.core.arrival.ArrivalObserver
@@ -55,6 +61,7 @@ import com.mapbox.navigation.ui.maps.camera.data.MapboxNavigationViewportDataSou
 import com.mapbox.navigation.ui.maps.camera.lifecycle.NavigationBasicGesturesHandler
 import com.mapbox.navigation.ui.maps.camera.transition.NavigationCameraTransitionOptions
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
+import com.mapbox.navigation.ui.maps.route.line.MapboxRouteLineApiExtensions.setNavigationRouteLines
 import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineApi
 import com.mapbox.navigation.ui.maps.route.line.api.MapboxRouteLineView
 import com.mapbox.navigation.ui.maps.route.line.model.*
@@ -73,6 +80,10 @@ import com.mapbox.navigation.ui.voice.model.SpeechError
 import com.mapbox.navigation.ui.voice.model.SpeechValue
 import com.mapbox.navigation.ui.voice.model.SpeechVolume
 import com.mapbox.navigation.utils.internal.toPoint
+import com.mapbox.rctmgl.components.styles.sources.RCTSource
+import com.mapbox.rctmgl.events.MapClickEvent
+import com.mapbox.rctmgl.utils.GeoJSONUtils
+import com.mapbox.rctmgl.utils.LatLng
 
 
 @SuppressWarnings("MissingPermission")
@@ -262,7 +273,6 @@ class AndroidMapboxView(
                 location = enhancedLocation,
                 keyPoints = locationMatcherResult.keyPoints,
             )
-//            origin = enhancedLocation.toPoint()
 
             // update camera position to account for new location
             viewportDataSource.onLocationChanged(enhancedLocation)
@@ -275,6 +285,11 @@ class AndroidMapboxView(
                         .build()
                 )
                 firstLocationUpdateReceived = true
+            }
+
+            getStyle {
+                val result = routeLineApi.updateTraveledRouteLine(enhancedLocation.toPoint())
+                routeLineView.renderRouteLineUpdate(it, result)
             }
 
             val payload = Arguments.createMap()
@@ -298,6 +313,12 @@ class AndroidMapboxView(
     private val routeProgressObserver = RouteProgressObserver { routeProgress ->
         Log.d("routeProgressObserver", "routeProgress")
 //         update the camera position to account for the progressed fragment of the route
+
+        routeLineApi.updateWithRouteProgress(routeProgress) { result ->
+            getStyle {
+                routeLineView.renderRouteLineUpdate(it, result)
+            }
+        }
 
         viewportDataSource.onRouteProgressChanged(routeProgress)
         viewportDataSource.evaluate()
@@ -371,20 +392,9 @@ class AndroidMapboxView(
             searchedRoutes = routeUpdateResult.navigationRoutes
 
             clearRouteLineView()
-            // remove the route line and route arrow from the map
-//            getStyle {
-//                routeLineApi.clearRouteLine { value ->
-//                    routeLineView.renderClearRouteLineValue(
-//                        it,
-//                        value
-//                    )
-//                }
-//            }
-//            viewportDataSource.clearRouteData()
-//            viewportDataSource.evaluate()
-
         }
     }
+
 
     private val arrivalObserver = object : ArrivalObserver {
         override fun onWaypointArrival(routeProgress: RouteProgress) {
@@ -408,6 +418,46 @@ class AndroidMapboxView(
             val onArrivalEvent = MapChangeEvent(this@AndroidMapboxView, EventTypes.ON_ARRIVAL)
             mManager.handleEvent(onArrivalEvent)
         }
+    }
+
+    override fun onMapClick(point: Point): Boolean {
+        getStyle { it ->
+            // Since this listener is reacting to all map touches, if the primary and alternative
+            // routes aren't visible it's assumed the touch isn't related to selecting an
+            // alternative route.
+            val primaryLineVisibility = routeLineView.getPrimaryRouteVisibility(it)
+            val alternativeRouteLinesVisibility = routeLineView.getAlternativeRoutesVisibility(it)
+            if (
+                primaryLineVisibility == Visibility.VISIBLE &&
+                alternativeRouteLinesVisibility == Visibility.VISIBLE
+            ) {
+                val routeClickPadding = Utils.dpToPx(30f)
+                routeLineApi.findClosestRoute(
+                    point,
+                    getMapboxMap(),
+                    routeClickPadding
+                ) { result ->
+                    result.onValue { value ->
+                        if (value.navigationRoute != routeLineApi.getPrimaryNavigationRoute()) {
+                            val reOrderedRoutes = routeLineApi.getNavigationRoutes()
+                                .filter { it != value.navigationRoute }
+                                .toMutableList()
+                                .also {
+                                    it.add(0, value.navigationRoute)
+                                }
+
+                            setRouteNavigation(reOrderedRoutes, point, destination);
+                        }
+                    }
+                }
+            }
+        }
+
+        return false
+    }
+
+    override fun onMapLongClick(point: Point): Boolean {
+       return super.onMapClick(point)
     }
 
     override fun onStop() {
@@ -449,16 +499,16 @@ class AndroidMapboxView(
         val currentLocale = resources.configuration.locales.get(0)
         val distanceFormatterOptions =
             DistanceFormatterOptions.Builder(context.applicationContext).locale(currentLocale).build()
+
+
         mMapboxNavigation = when {
             MapboxNavigationProvider.isCreated() -> {
-                Log.d("MapboxNavigationProvider", "IsCreated");
                 MapboxNavigationProvider.retrieve()
             }
             shouldSimulate -> {
                 mMapboxReplayer = MapboxReplayer()
                 replayLocationEngine = ReplayLocationEngine(mMapboxReplayer!!)
                 replayProgressObserver = ReplayProgressObserver(mMapboxReplayer!!)
-                Log.d("MapboxNavigationProvider", "ShouldSimulate");
                 MapboxNavigationProvider.create(
                     NavigationOptions.Builder(context)
                         .accessToken(accessToken)
@@ -468,7 +518,6 @@ class AndroidMapboxView(
                 )
             }
             else -> {
-                Log.d("MapboxNavigationProvider", "Real");
                 MapboxNavigationProvider.create(
                     NavigationOptions.Builder(context)
                         .distanceFormatterOptions(distanceFormatterOptions)
@@ -501,6 +550,13 @@ class AndroidMapboxView(
 
         val customColorResources = RouteLineColorResources.Builder()
             .routeDefaultColor(Color.parseColor("#FF0000"))
+            .routeCasingColor(Color.parseColor("#FF0000"))
+            .routeLowCongestionColor(Color.parseColor("#FF0000"))
+            .routeSevereCongestionColor(Color.parseColor("#FF0000"))
+            .routeUnknownCongestionColor(Color.parseColor("#FF0000"))
+            .inActiveRouteLegsColor(Color.parseColor("#FF0000"))
+            .routeLineTraveledColor(Color.parseColor("#ADADAD"))
+            .routeLineTraveledCasingColor(Color.parseColor("#ADADAD"))
             .build()
 //            .inActiveRouteLegsColor(Color.parseColor("#FF0000"))
 //            .routeLineTraveledCasingColor(Color.parseColor("#FF0000"))
@@ -547,20 +603,37 @@ class AndroidMapboxView(
         reactContext.addLifecycleEventListener(mLifeCycleListener)
     }
 
-    private fun setRouteNavigation(routes: List<NavigationRoute>) {
+    private fun setRouteNavigation(routes: List<NavigationRoute>, originPoint: Point?, destinationPoint: Point?) {
         searchedRoutes = routes
 
         // set routes, where the first route in the list is the primary route that
         // will be used for active guidance
         mMapboxNavigation?.setNavigationRoutes(routes)
-
         val routeLines = routes.toDirectionsRoutes().map { RouteLine(it, null) }
+
         routeLineApi.setNavigationRouteLines(
             routeLines
                 .toNavigationRouteLines()
         ) { value ->
             getStyle {
                 routeLineView.renderRouteDrawData(it, value)
+                if (originPoint != null && destinationPoint != null) {
+                    val points = arrayListOf(originPoint, destinationPoint)
+                    routes.forEach { navigationRoute ->
+                        val geometryPoints = navigationRoute.directionsRoute.completeGeometryToPoints()
+                        points.addAll(geometryPoints)
+                    }
+                    val pixelDensity = context.resources.displayMetrics.density
+
+                    val edgeInsets = EdgeInsets(
+                        40.0 * pixelDensity,
+                        40.0 * pixelDensity,
+                        40.0 * pixelDensity,
+                        40.0 * pixelDensity
+                    )
+                    val cameraOptions = getMapboxMap().cameraForCoordinates(points, edgeInsets)
+                    getMapboxMap().setCamera(cameraOptions)
+                }
             }
             if (routes.isNotEmpty()) {
                 val onFindRouteSuccessEvent =
@@ -625,33 +698,18 @@ class AndroidMapboxView(
             return
         }
 
+        getStyle {
+            routeLineView.showAlternativeRoutes(it)
+        }
+
         val routeBuilder = RouteOptions.builder()
             .applyDefaultNavigationOptions()
             .applyLanguageAndVoiceUnitOptions(context)
             .coordinatesList(listOf(origin, destination))
             .profile(DirectionsCriteria.PROFILE_DRIVING_TRAFFIC)
+            .alternatives(true)
             .steps(true)
 
-//        if (originLocation is Location) {
-//            routeBuilder = routeBuilder.bearingsList(
-//                listOf(
-//                    Bearing.builder()
-//                        .angle(originLocation.bearing.toDouble())
-//                        .degrees(45.0)
-//                        .build(),
-//                    null
-//                )
-//            )
-//        } else {
-//            routeBuilder =  routeBuilder.bearingsList(
-//                listOf(
-//                    Bearing.builder()
-//                        .degrees(45.0)
-//                        .build(),
-//                    null
-//                )
-//            )
-//        }
         val routeOptions = routeBuilder.build()
 
         setMapboxNavigation(false)
@@ -667,7 +725,7 @@ class AndroidMapboxView(
                         eventHelper?.sendErrorToReact(this@AndroidMapboxView, StatusType.ERROR_FIND_ROUTE_NO_ROUTES, StatusCode.ERROR_FIND_ROUTE_NO_ROUTES, "Unable to find route from origin to destination")
                         return
                     }
-                    setRouteNavigation(routes)
+                    setRouteNavigation(routes, origin, destination)
                 }
 
                 override fun onFailure(
@@ -688,17 +746,14 @@ class AndroidMapboxView(
     private val moveListener = object: OnMoveListener {
         override fun onMoveBegin(moveGestureDetector: MoveGestureDetector) {
             moveGesturehandler.removeCallbacks(moveGestureRunnable)
-            Log.d("moveGestureDetector", "user move begin")
             navigationCamera.requestNavigationCameraToIdle()
         }
 
         override fun onMove(moveGestureDetector: MoveGestureDetector): Boolean {
-            Log.d("moveGestureDetector", "user still on moving")
             return false
         }
 
         override fun onMoveEnd(moveGestureDetector: MoveGestureDetector) {
-            Log.d("moveGestureDetector", "user stop moving")
             moveGesturehandler.postDelayed(moveGestureRunnable, 3000)
 //            NavigationCameraTransitionOptions.Builder().maxDuration(500L).build()
 //            navigationCamera.requestNavigationCameraToFollowing()
@@ -716,6 +771,11 @@ class AndroidMapboxView(
             return
         }
 
+        // RouteLine: Hiding the alternative routes when navigation starts.
+        getStyle {
+            routeLineView.hideAlternativeRoutes(it)
+        }
+
 //        val currentLocale = resources.configuration.locales.get(0)
 //        speechApi = MapboxSpeechApi(context, accessToken, currentLocale.toLanguageTag())
 //        voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
@@ -729,7 +789,7 @@ class AndroidMapboxView(
         this.gestures.addOnMoveListener(moveListener)
         setMapboxNavigation(shouldSimulate)
         registerObserver()
-        setRouteNavigation(searchedRoutes)
+        setRouteNavigation(searchedRoutes, null, null);
 
         val onNavigationStartedEvent = MapChangeEvent(this, EventTypes.ON_NAVIGATION_STARTED)
         mManager.handleEvent(onNavigationStartedEvent)
@@ -815,7 +875,7 @@ class AndroidMapboxView(
     fun clearRoute() {
         firstLocationUpdateReceived = false
         isRouting = false
-        setRouteNavigation(emptyList())
+        setRouteNavigation(emptyList(), null, null)
     }
 
     /** REACT_METHOD **/
