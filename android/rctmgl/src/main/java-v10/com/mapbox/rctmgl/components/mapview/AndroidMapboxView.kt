@@ -34,6 +34,7 @@ import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
 import com.mapbox.navigation.base.formatter.DistanceFormatterOptions
 import com.mapbox.navigation.base.formatter.UnitType
+import com.mapbox.navigation.base.internal.extensions.inferDeviceLocale
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.route.*
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
@@ -84,6 +85,7 @@ import com.mapbox.rctmgl.components.styles.sources.RCTSource
 import com.mapbox.rctmgl.events.MapClickEvent
 import com.mapbox.rctmgl.utils.GeoJSONUtils
 import com.mapbox.rctmgl.utils.LatLng
+import com.mapbox.rctmgl.utils.UnitUtil
 
 
 @SuppressWarnings("MissingPermission")
@@ -347,9 +349,13 @@ class AndroidMapboxView(
             }
         }
 
-        val distance: Double = routeProgress.distanceRemaining.toDouble()
+        var distance: Double = routeProgress.distanceRemaining.toDouble()
+        distance = if (distance > 5) distance else 0.0
+
+        val defaultLocale = context.applicationContext.inferDeviceLocale()
+        val distanceUnitType = UnitUtil.getDistanceUnitTypeByLocaleData(defaultLocale)
         val distanceFormat =
-            MapboxDistanceUtil.formatDistance(distance, 0, UnitType.METRIC, context)
+            MapboxDistanceUtil.formatDistance(distance, 0, distanceUnitType, context)
         val currentLegDistance = "${distanceFormat.distanceAsString}${distanceFormat.distanceSuffix}"
 
         val routeProgressPayload = Arguments.createMap()
@@ -496,10 +502,9 @@ class AndroidMapboxView(
             replayLocationEngine = null
         }
 
-        val currentLocale = resources.configuration.locales.get(0)
+//        val defaultLocale = context.applicationContext.inferDeviceLocale()
         val distanceFormatterOptions =
-            DistanceFormatterOptions.Builder(context.applicationContext).locale(currentLocale).build()
-
+            DistanceFormatterOptions.Builder(context.applicationContext).build()
 
         mMapboxNavigation = when {
             MapboxNavigationProvider.isCreated() -> {
@@ -527,7 +532,6 @@ class AndroidMapboxView(
             }
         }
 
-//        val distanceFormatterOptions = mMapboxNavigation!!.navigationOptions.distanceFormatterOptions
         maneuverApi = MapboxManeuverApi(
             MapboxDistanceFormatter(distanceFormatterOptions)
         )

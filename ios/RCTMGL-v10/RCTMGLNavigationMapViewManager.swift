@@ -226,11 +226,12 @@ extension RCTMGLNavigationMapViewManager {
     
     @objc
     func startRoute( _ reactTag: NSNumber,
+                     origin:[NSNumber]?,
                     shouldSimulate:Bool,
                     resolver: @escaping RCTPromiseResolveBlock,
                     rejecter: @escaping RCTPromiseRejectBlock) {
         withNavigationMapView(reactTag, name:"stopRoute", rejecter: rejecter) { view in
-           view.startRoute(shouldSimulate)
+           view.startRoute(origin, shouldSimulate: shouldSimulate)
            resolver(nil)
         }
     }
@@ -242,6 +243,17 @@ extension RCTMGLNavigationMapViewManager {
         withNavigationMapView(reactTag, name:"recenter", rejecter: rejecter) { view in
            view.recenter()
            resolver(nil)
+        }
+    }
+    
+    @objc
+    func changeCameraBearingMode(_ reactTag: NSNumber,
+                                 mode: String,
+                                 resolver: @escaping RCTPromiseResolveBlock,
+                                 rejecter: @escaping RCTPromiseRejectBlock) {
+        withNavigationMapView(reactTag, name:"changeCameraBearingMode", rejecter: rejecter) { view in
+            view.changeCameraBearingMode(mode)
+            resolver(nil)
         }
     }
 }

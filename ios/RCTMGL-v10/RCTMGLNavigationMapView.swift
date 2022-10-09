@@ -30,7 +30,32 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     
     // Routes
     var isRouting: Bool = false
-    var currentRoutes:RouteResponse? = nil
+    
+    var routeIndex = 0 {
+        didSet {
+            showCurrentRoute()
+        }
+    }
+    
+    var routeResponse: RouteResponse? {
+        didSet {
+//            guard currentRoute != nil else {
+//                self.removeRoutes()
+//                return
+//            }
+            routeIndex = 0
+        }
+    }
+    
+    var routes: [Route]? {
+        return routeResponse?.routes
+    }
+    
+    var route: Route? {
+        print("routeIndex \(routeIndex)")
+        return routes?[routeIndex]
+    }
+ 
     var currentNavigationRouteOptions: NavigationRouteOptions? = nil
     var navigationService: MapboxNavigationService? = nil
     
@@ -44,18 +69,23 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     private var isAnimatingFromGesture = false
 
     var layerWaiters : [String:[(String) -> Void]] = [:]
-    
-//    lazy var pointAnnotationManager : PointAnnotationManager = {
-//      return PointAnnotationManager(annotations: annotations, mapView: mapView)
-//    }()
 
     lazy var calloutAnnotationManager : MapboxMaps.PointAnnotationManager = {
         return self.mapView.annotations.makePointAnnotationManager(id: "rctmlg-callout")
     }()
     
-//    var mapView : RCTMGLMapView {
-//      get { return self }
-//    }
+    func showCurrentRoute() {
+        guard let currentRoute = self.route else { return }
+        self.overrideLineLayerColor()
+        
+        var routes = [currentRoute]
+        routes.append(contentsOf: self.routes!.filter {
+            $0 != currentRoute
+        })
+        
+        self.showcase(routes, routesPresentationStyle: .all(shouldFit: true), animated: true)
+        self.showWaypoints(on: currentRoute)
+    }
     
     func addToMap(_ subview: UIView) {
       if let mapComponent = subview as? RCTMGLMapComponent2 {
@@ -64,11 +94,9 @@ open class RCTMGLNavigationMapView: NavigationMapView {
           onStyleLoadedComponents.append(mapComponent)
           if (style.isLoaded) {
               mapComponent.addToMap(self, style: style)
-//            mapComponent.addToMap(self, style: style)
           }
         } else {
             mapComponent.addToMap(self, style: style)
-//          mapComponent.addToMap(self, style: style)
         }
       } else {
         print("addToMap.Subviews: \(subview.reactSubviews())")
@@ -115,6 +143,10 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     
 //      overrideLineLayerColor()
       setupEvents()
+        
+      //@kevin: test add view port source
+      self.navigationCamera.viewportDataSource = CustomViewportDataSource(self.mapView)
+      self.navigationCamera.cameraStateTransition = CustomCameraStateTransition(self.mapView)
     }
     
     public required init (coder: NSCoder) {
@@ -127,25 +159,28 @@ open class RCTMGLNavigationMapView: NavigationMapView {
     
     func overrideLineLayerColor() {
         let red : UIColor = UIColor(red: 1.0, green: 0, blue: 0, alpha: 1)
-        self.routeCasingColor = red
-        self.routeAlternateColor = red
-        self.routeAlternateCasingColor = red
-        self.traversedRouteColor = red
-        self.maneuverArrowColor = red
-        self.maneuverArrowStrokeColor = red
+        let lineColor : UIColor = UIColor.init(rgb: 0x92140C)
+        let lineGrayColor : UIColor = UIColor.init(rgb: 0xADADAD)
+        self.routeCasingColor = lineColor
+        self.routeAlternateColor = lineGrayColor
+        self.routeAlternateCasingColor = lineGrayColor
+        self.traversedRouteColor = lineGrayColor
+        self.maneuverArrowColor = lineColor
+        self.maneuverArrowStrokeColor = lineColor
         
 
-        self.trafficUnknownColor = red
-        self.trafficLowColor = red
-        self.trafficModerateColor = red
-        self.trafficHeavyColor = red
-        self.trafficSevereColor = red
-        self.alternativeTrafficUnknownColor = red
-        self.alternativeTrafficLowColor = red
-        self.alternativeTrafficModerateColor = red
-        self.alternativeTrafficHeavyColor = red
-        self.alternativeTrafficSevereColor = red
-        self.routeRestrictedAreaColor = red
+        self.trafficUnknownColor = lineColor
+        self.trafficLowColor = lineColor
+        self.trafficModerateColor = lineColor
+        self.trafficHeavyColor = lineColor
+        self.trafficSevereColor = lineColor
+        self.alternativeTrafficUnknownColor = lineGrayColor
+        self.alternativeTrafficLowColor = lineGrayColor
+        self.alternativeTrafficModerateColor = lineGrayColor
+        self.alternativeTrafficHeavyColor = lineGrayColor
+        self.alternativeTrafficSevereColor = lineGrayColor
+        self.routeAlternateCasingColor = lineColor
+        self.routeRestrictedAreaColor = lineColor
     }
     
     func waitForLayerWithID(_ layerId: String, _  callback: @escaping (_ layerId: String) -> Void) {
@@ -362,6 +397,7 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
           self.navigationService = service
     }
     
+    
     // STUB
     public func navigationService(_ service: NavigationService, didUpdate progress: RouteProgress, with location: CLLocation, rawLocation: CLLocation) {
     
@@ -376,24 +412,42 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
             "currentStepIndex": progress.currentLegProgress.stepIndex
         ] as [String : Any]
         
+        let distanceRemaining = progress.distanceRemaining
+        let distance = distanceRemaining > 5 ? distanceRemaining : 0
+        
+        let distanceFormatter = DistanceFormatter()
+        let distanceRemainingDisplay = distanceFormatter.attributedString(for: distance)!.string
+        print("distance: \(distance)")
+        print("distanceRemainingDisplay: \(distanceRemainingDisplay)")
+        
         let routeProgressEvent = RCTMGLEvent(type: .OnRouteProgressChange, payload: [
             "activeLegPayload": activeLegPayload,
             "distanceTraveled": progress.distanceTraveled,
-            "distanceRemaining": progress.distanceRemaining,
+            "distanceRemaining": distance,
+            "distanceRemainingDisplay": distanceRemainingDisplay,
             "durationRemaining": progress.durationRemaining,
             "fractionTraveled": progress.fractionTraveled,
         ])
         self.fireEvent(event: routeProgressEvent, callback: reactOnMapChange)
         
-        // update route line
-        self.show([progress.route], legIndex: progress.legIndex)
         
-        if progress.isFinalLeg && progress.currentLegProgress.userHasArrivedAtWaypoint && progress.currentLegProgress.distanceRemaining <= 0 {
-            self.removeRoutes()
-        } else {
-            updateUpcomingRoutePointIndex(routeProgress: progress)
-            travelAlongRouteLine(to: location.coordinate)
-        }
+        //@Kevin: test
+        let customViewportDataSource = self.navigationCamera.viewportDataSource as? CustomViewportDataSource;
+        customViewportDataSource?.progressRouteDidChange(location, routeProgress: progress);
+        
+//        if progress.isFinalLeg && progress.currentLegProgress.userHasArrivedAtWaypoint && progress.currentLegProgress.distanceRemaining <= 0 {
+//            self.removeRoutes()
+//        } else {
+//            updateUpcomingRoutePointIndex(routeProgress: progress)
+//            travelAlongRouteLine(to: location.coordinate)
+//        }
+
+        // update route line
+//        self.show([progress.route], legIndex: progress.legIndex)
+        
+        
+        updateRouteLine(routeProgress: progress, coordinate: CLLocationCoordinate2D.init(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude), shouldRedraw: true)
+        
     }
     
     public func navigationService(_ service: NavigationService, willBeginSimulating progress: RouteProgress, becauseOf reason: SimulationIntent) {
@@ -418,9 +472,13 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
         return true
     }
     
+    public func navigationService(_ service: NavigationService, didEndSimulating progress: RouteProgress, becauseOf reason: SimulationIntent) {
+        self.navigationService = nil;
+    }
+    
     @objc
-    func startRoute(_ shouldSimulate: Bool) -> Void {
-        if (self.currentRoutes == nil || self.currentNavigationRouteOptions == nil) {
+    func startRoute(_ origin:[NSNumber]?, shouldSimulate: Bool) -> Void {
+        if (self.routeResponse == nil || self.routeResponse?.routes == nil || self.currentNavigationRouteOptions == nil) {
             let payload = [
                 "code": RCTMGLEvent.StatusCode.ERROR_START_ROUTE_NO_ROUTES.rawValue,
                 "statusText": RCTMGLEvent.StatusType.ERROR_START_ROUTE_NO_ROUTES.rawValue,
@@ -431,13 +489,29 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
         }
         
         let simulating = shouldSimulate ? SimulationMode.always : SimulationMode.never
+        
+        if let mapView = self.mapView {
+            let customViewportDataSource = CustomViewportDataSource(mapView)
+            self.navigationCamera.viewportDataSource = customViewportDataSource
+             
+            let customCameraStateTransition = CustomCameraStateTransition(mapView)
+            self.navigationCamera.cameraStateTransition = customCameraStateTransition
+        }
+        
+        
 //        let navigationLocManager = NavigationLocationManager()
 //        navigationLocManager.simulatesLocation = shouldSimulate
-        let navigationService = MapboxNavigationService(routeResponse: self.currentRoutes!, routeIndex: 0, routeOptions: self.currentNavigationRouteOptions!, customRoutingProvider: NavigationSettings.shared.directions, credentials: NavigationSettings.shared.directions.credentials, locationSource: nil, eventsManagerType: nil, simulating: simulating, routerType: nil)
+        let navigationService = MapboxNavigationService(routeResponse: self.routeResponse!, routeIndex: routeIndex, routeOptions: self.currentNavigationRouteOptions!, customRoutingProvider: NavigationSettings.shared.directions, credentials: NavigationSettings.shared.directions.credentials, locationSource: nil, eventsManagerType: nil, simulating: simulating, routerType: nil)
      
         navigationService.delegate = self
+        
+        self.routeLineTracksTraversal = true
+        
+        //to speed up the simulation
         navigationService.simulationSpeedMultiplier = 3.0
         navigationService.start()
+        
+        //camera start following
         self.navigationCamera.follow()
         
         self.isRouting = true
@@ -449,27 +523,20 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
         self.navigationCamera.stop()
         self.isRouting = false
         self.navigationService?.stop()
+        self.navigationService?.endNavigation()
     }
     
     @objc
     func clearRoute() -> Void {
-        self.navigationService?.endNavigation()
         self.stopRoute()
         self.removeRoutes()
-        self.currentRoutes = nil
+        self.routeResponse = nil
+        self.routeIndex = 0;
         self.currentNavigationRouteOptions = nil
     }
     
     @objc
-    func recenter() -> Void {
-        if (self.isRouting) {
-            self.navigationCamera.follow()
-        }
-    }
-    
-    @objc
     func findRoute(_ origin:[NSNumber]?, destination:[NSNumber]?) -> Void {
-        
         guard let origins = origin else {
             let payload = [
                 "code": RCTMGLEvent.StatusCode.ERROR_FIND_ROUTE_NO_ORIGIN.rawValue,
@@ -506,7 +573,7 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
                     ] as [String : Any]
                     RCTMGLUtils.errorCallback(.OnError, payload: payload , callback: self?.reactOnMapError)
                 case .success(let response): do {
-                    guard let strongSelf = self else {
+                    guard self != nil else {
                             return
                         }
                     
@@ -520,13 +587,24 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
                         return;
                     }
                 
-//                    return pointAnnotationManager?.annotations.filter({ $0.id == identifier }) ?? []
-                    
-                    strongSelf.show(response.routes ?? [])
-                    self?.currentRoutes = response
+                    self?.routeResponse = response
                     self?.currentNavigationRouteOptions = routeOptions
-                    let event = RCTMGLEvent(type: .OnFindRouteSuccess, payload: nil)
-                    self?.fireEvent(event: event, callback: self?.reactOnMapChange)
+                    self?.overrideLineLayerColor()
+                    
+                    if let routes = self?.routes,
+                       let currentRoute = self?.route {
+                       self?.showcase(routes, routesPresentationStyle: .all(shouldFit: true), animated: true)
+                       self?.showWaypoints(on: currentRoute)
+                       let event = RCTMGLEvent(type: .OnFindRouteSuccess, payload: nil)
+                       self?.fireEvent(event: event, callback: self?.reactOnMapChange)
+                    }
+                    
+                    
+//                    let route = response.routes?.first ?? nil
+//                    if ((route) != nil) {
+//                        self?.showWaypoints(on: route!)
+//                    }
+                
                 }
             }
         }
@@ -537,12 +615,37 @@ extension RCTMGLNavigationMapView: NavigationServiceDelegate {
 
 // MARK: - NavigationMapViewDelegate
 extension RCTMGLNavigationMapView: NavigationMapViewDelegate {
+    
+    func lineWidthExpression(_ multiplier: Double = 1.0) -> Expression {
+        let lineWidthExpression = Exp(.interpolate) {
+            Exp(.linear)
+            Exp(.zoom)
+            // It's possible to change route line width depending on zoom level, by using expression
+            // instead of constant. Navigation SDK for iOS also exposes `RouteLineWidthByZoomLevel`
+            // public property, which contains default values for route lines on specific zoom levels.
+            RouteLineWidthByZoomLevel.multiplied(by: multiplier)
+        }
+     
+        return lineWidthExpression
+    }
+    
     public func navigationMapView(_ navigationMapView: NavigationMapView, routeLineLayerWithIdentifier identifier: String, sourceIdentifier: String) -> LineLayer? {
         var lineLayer = LineLayer(id: identifier)
         lineLayer.source = sourceIdentifier
+        
 
-        lineLayer.lineColor = .constant(.init(#colorLiteral(red: 1.0, green: 0, blue: 0, alpha: 1)))
-        lineLayer.lineWidth = .constant(8.0)
+        // `identifier` parameter contains unique identifier of the route layer or its casing.
+        // Such identifier consists of several parts: unique address of route object, whether route is
+        // main or alternative, and whether route is casing or not. For example: identifier for
+        // main route line will look like this: `0x0000600001168000.main.route_line`, and for
+        // alternative route line casing will look like this: `0x0000600001ddee80.alternative.route_line_casing`.
+        
+        let redColor : UIColor = UIColor.init(rgb: 0x92140C)
+        let grayColor : UIColor = UIColor.init(rgb: 0xADADAD)
+
+        lineLayer.lineColor = .constant(.init(identifier.contains("main") ? redColor : grayColor))
+//        lineLayer.lineWidth = .constant(8.0)
+        lineLayer.lineWidth = .expression(lineWidthExpression())
         lineLayer.lineJoin = .constant(.round)
         lineLayer.lineCap = .constant(.round)
         return lineLayer
@@ -552,13 +655,29 @@ extension RCTMGLNavigationMapView: NavigationMapViewDelegate {
         var lineLayer = LineLayer(id: identifier)
         lineLayer.source = sourceIdentifier
 
-        lineLayer.lineColor = .constant(.init(#colorLiteral(red: 1.0, green: 0, blue: 0, alpha: 1)))
-        lineLayer.lineWidth = .constant(8.0)
+//        let lineColor : UIColor = UIColor.init(rgb: 0x92140C)
+//        let lineGrayColor : UIColor = UIColor.init(rgb: 0xADADAD)
+//        lineLayer.lineColor = .constant(.init(#colorLiteral(red: 1.0, green: 0, blue: 0, alpha: 1)))
+//        lineLayer.lineColor = .constant(.init(lineGrayColor))
+        
+        // Based on information stored in `identifier` property (whether route line is main or not)
+        // route line will be colored differently.
+        
+        let redColor : UIColor = UIColor.init(rgb: 0x92140C)
+        let grayColor : UIColor = UIColor.init(rgb: 0xADADAD)
+
+        
+        lineLayer.lineColor = .constant(.init(identifier.contains("main") ? redColor : grayColor))
+//        lineLayer.lineWidth = .constant(8.0)
+        lineLayer.lineWidth = .expression(lineWidthExpression(1.2))
         lineLayer.lineJoin = .constant(.round)
         lineLayer.lineCap = .constant(.round)
         return lineLayer
     }
-    
+
+    public func navigationMapView(_ navigationMapView: NavigationMapView, didSelect route: Route) {
+        self.routeIndex = self.routes?.firstIndex(of: route) ?? 0
+    }
     
 }
 
@@ -722,8 +841,8 @@ extension RCTMGLNavigationMapView {
   @objc func setReactOnPress(_ value: @escaping RCTBubblingEventBlock) {
     self.reactOnPress = value
     
-    self.mapView.gestures.singleTapGestureRecognizer.removeTarget(self.pointAnnotationManager, action: nil)
-    self.mapView.gestures.singleTapGestureRecognizer.addTarget(self, action: #selector(doHandleTap(_:)))
+//    self.mapView.gestures.singleTapGestureRecognizer.removeTarget(self.pointAnnotationManager, action: nil)
+//    self.mapView.gestures.singleTapGestureRecognizer.addTarget(self, action: #selector(doHandleTap(_:)))
   }
 
   @objc func setReactOnLongPress(_ value: @escaping RCTBubblingEventBlock) {
@@ -732,6 +851,19 @@ extension RCTMGLNavigationMapView {
     let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(doHandleLongPress(_:)))
     self.mapView.addGestureRecognizer(longPressGestureRecognizer)
   }
+    
+    @objc
+    func recenter() -> Void {
+        if (self.isRouting) {
+            self.navigationCamera.follow()
+        }
+    }
+    
+    @objc
+    func changeCameraBearingMode(_ mode: String) -> Void {
+        let customViewportDataSource = self.navigationCamera.viewportDataSource as? CustomViewportDataSource;
+        customViewportDataSource?.changeCameraBearingMode(mode);
+    }
  
 }
 
@@ -888,20 +1020,18 @@ extension RCTMGLNavigationMapView {
   func queryTerrainElevation(coordinates: [NSNumber]) -> Double? {
       return self.mapView.mapboxMap.elevation(at: CLLocationCoordinate2D(latitude: coordinates[1].doubleValue, longitude: coordinates[0].doubleValue))
   }
-}
-
-extension RCTMGLNavigationMapView {
-  func onMapStyleLoaded(block: @escaping (MapboxMap) -> Void) {
-      guard let mapboxMap = self.mapView.mapboxMap else {
-      fatalError("mapboxMap is null")
-    }
     
-    if styleLoaded {
-      block(mapboxMap)
-    } else {
-      styleLoadWaiters.append(block)
+    func onMapStyleLoaded(block: @escaping (MapboxMap) -> Void) {
+        guard let mapboxMap = self.mapView.mapboxMap else {
+        fatalError("mapboxMap is null")
+      }
+      
+      if styleLoaded {
+        block(mapboxMap)
+      } else {
+        styleLoadWaiters.append(block)
+      }
     }
-  }
 }
 
 extension RCTMGLNavigationMapView {
@@ -933,99 +1063,20 @@ extension RCTMGLNavigationMapView {
   }
 }
 
+extension UIColor {
+   convenience init(red: Int, green: Int, blue: Int) {
+       assert(red >= 0 && red <= 255, "Invalid red component")
+       assert(green >= 0 && green <= 255, "Invalid green component")
+       assert(blue >= 0 && blue <= 255, "Invalid blue component")
 
-//class PointAnnotationManager2 : AnnotationInteractionDelegate {
-//  weak var selected : RCTMGLPointAnnotation? = nil
-//
-//  func annotationManager(_ manager: AnnotationManager, didDetectTappedAnnotations annotations: [Annotation]) {
-//    guard annotations.count > 0 else {
-//      fatalError("didDetectTappedAnnotations: No annotations found")
-//    }
-//
-//    for annotation in annotations {
-//      if let pointAnnotation = annotation as? PointAnnotation,
-//         let userInfo = pointAnnotation.userInfo {
-//
-//        if let rctmglPointAnnotation = userInfo[RCTMGLPointAnnotation.key] as? WeakRef<RCTMGLPointAnnotation> {
-//          if let pt = rctmglPointAnnotation.object {
-//            if let selected = selected {
-//              selected.onDeselect()
-//            }
-//            pt.onSelect()
-//            selected = pt
-//          }
-//        }
-//      }
-//      /*
-//
-//         let rctmglPointAnnotation = userInfo[RCTMGLPointAnnotation.key] as? WeakRef<RCTMGLPointAnnotation>,
-//         let rctmglPointAnnotation = rctmglPointAnnotation.object {
-//        rctmglPointAnnotation.didTap()
-//      }*/
-//    }
-//  }
-//
-//  func handleTap(_ tap: UITapGestureRecognizer,  noAnnotationFound: @escaping (UITapGestureRecognizer) -> Void) {
-//    let layerId = manager.layerId
-//    guard let mapFeatureQueryable = mapView?.mapboxMap else {
-//      noAnnotationFound(tap)
-//      return
-//    }
-//    let options = RenderedQueryOptions(layerIds: [layerId], filter: nil)
-//    mapFeatureQueryable.queryRenderedFeatures(
-//        at: tap.location(in: tap.view),
-//        options: options) { [weak self] (result) in
-//
-//        guard let self = self else { return }
-//
-//        switch result {
-//
-//        case .success(let queriedFeatures):
-//
-//            // Get the identifiers of all the queried features
-//            let queriedFeatureIds: [String] = queriedFeatures.compactMap {
-//                guard case let .string(featureId) = $0.feature.identifier else {
-//                    return nil
-//                }
-//                return featureId
-//            }
-//
-//            // Find if any `queriedFeatureIds` match an annotation's `id`
-//            let tappedAnnotations = self.manager.annotations.filter { queriedFeatureIds.contains($0.id) }
-//
-//            // If `tappedAnnotations` is not empty, call delegate
-//            if !tappedAnnotations.isEmpty {
-//              self.annotationManager(
-//                self.manager,
-//                didDetectTappedAnnotations: tappedAnnotations)
-//
-//            } else {
-//              noAnnotationFound(tap)
-//            }
-//
-//        case .failure(let error):
-//          noAnnotationFound(tap)
-//          Logger.log(level:.warn, message:"Failed to query map for annotations due to error: \(error)")
-//
-//        }
-//    }
-//  }
-//
-//  var manager : MapboxMaps.PointAnnotationManager
-//  weak var mapView : MapView? = nil
-//
-//  init(annotations: AnnotationOrchestrator, mapView: MapView) {
-//    manager = annotations.makePointAnnotationManager()
-//    manager.delegate = self
-//    self.mapView = mapView
-//  }
-//
-//  func remove(_ annotation: PointAnnotation) {
-//    manager.annotations.removeAll(where: {$0.id == annotation.id})
-//  }
-//
-//  func add(_ annotation: PointAnnotation) {
-//    manager.annotations.append(annotation)
-//    manager.syncSourceAndLayerIfNeeded()
-//  }
-//}
+       self.init(red: CGFloat(red) / 255.0, green: CGFloat(green) / 255.0, blue: CGFloat(blue) / 255.0, alpha: 1.0)
+   }
+
+   convenience init(rgb: Int) {
+       self.init(
+           red: (rgb >> 16) & 0xFF,
+           green: (rgb >> 8) & 0xFF,
+           blue: rgb & 0xFF
+       )
+   }
+}

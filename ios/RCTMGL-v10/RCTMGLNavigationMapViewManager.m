@@ -94,6 +94,7 @@ RCT_EXTERN_METHOD(findRoute:(nonnull NSNumber*)reactTag
                   rejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(startRoute:(nonnull NSNumber*)reactTag
+                  origin:(NSArray<NSNumber*>*)origin
                   shouldSimulate:(BOOL)shouldSimulate
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -111,4 +112,9 @@ RCT_EXTERN_METHOD(recenter:(nonnull NSNumber*)reactTag
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+
+RCT_EXTERN_METHOD(changeCameraBearingMode:(nonnull NSNumber*)reactTag
+                  mode: String
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 @end
