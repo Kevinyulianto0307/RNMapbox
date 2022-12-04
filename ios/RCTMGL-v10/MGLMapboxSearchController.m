@@ -1,10 +1,10 @@
-#import <Foundation/Foundation.h>
-#import "React/RCTBridgeModule.h"
+// #import <Foundation/Foundation.h>
+// #import "React/RCTBridgeModule.h"
 
-@interface RCT_EXTERN_MODULE(MGLMapboxSearchController, NSObject)
+// @interface RCT_EXTERN_MODULE(MGLMapboxSearchController, NSObject)
 
-RCT_EXTERN_METHOD(forwardSearch:(NSString)query
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject);
+// RCT_EXTERN_METHOD(forwardSearch:(NSString)query
+//                   resolver:(RCTPromiseResolveBlock)resolve
+//                   rejecter:(RCTPromiseRejectBlock)reject);
 
-@end
+// @end
