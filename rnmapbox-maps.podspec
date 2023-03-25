@@ -235,8 +235,8 @@ Pod::Spec.new do |s|
     when 'mapbox'
       s.dependency 'MapboxMaps', MapboxImplVersion
       s.dependency 'Turf'
-      s.dependency 'MapboxCoreNavigation', '~> 2.6'
-      s.dependency 'MapboxNavigation', '~> 2.6'
+      s.dependency 'MapboxCoreNavigation', '~> 2.8'
+      s.dependency 'MapboxNavigation', '~> 2.8'
       # s.dependency 'MapboxSearch', '~> 1.0.0-beta.32'
       s.swift_version = '5.0'
     when 'mapbox-gl'
